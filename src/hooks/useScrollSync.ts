@@ -33,9 +33,11 @@ export function useScrollSync(
         if (eMax <= 0) return;
         const pMax = previewScroll.scrollHeight - previewScroll.clientHeight;
         if (pMax <= 0) return;
-        const progress = editorScroll.scrollTop / eMax;
+        let progress = editorScroll.scrollTop / eMax;
+        if (progress < 0.005) progress = 0;
+        else if (progress > 0.995) progress = 1;
         lockUntilRef.current = performance.now() + LOCK_MS;
-        previewScroll.scrollTop = progress * pMax;
+        previewScroll.scrollTop = Math.round(progress * pMax);
       });
     };
 
@@ -47,9 +49,11 @@ export function useScrollSync(
         if (pMax <= 0) return;
         const eMax = editorScroll.scrollHeight - editorScroll.clientHeight;
         if (eMax <= 0) return;
-        const progress = previewScroll.scrollTop / pMax;
+        let progress = previewScroll.scrollTop / pMax;
+        if (progress < 0.005) progress = 0;
+        else if (progress > 0.995) progress = 1;
         lockUntilRef.current = performance.now() + LOCK_MS;
-        editorScroll.scrollTop = progress * eMax;
+        editorScroll.scrollTop = Math.round(progress * eMax);
       });
     };
 
