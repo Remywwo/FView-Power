@@ -12,6 +12,8 @@
     "nav.shortcuts":  "快捷键",
     "nav.faq":        "FAQ",
 
+    "macos.warning": "macOS 用户：下载安装后若提示「已损坏」，请打开终端运行：",
+
     "hero.badge":       "v0.1.0 · 公开测试",
     "hero.title.1":     "极简的",
     "hero.title.2":     "文件预览器",
@@ -90,6 +92,8 @@
     "nav.screenshots":"Screenshots",
     "nav.shortcuts":  "Shortcuts",
     "nav.faq":        "FAQ",
+
+    "macos.warning": "macOS users: if the app shows \"damaged\", run this in Terminal:",
 
     "hero.badge":       "v0.1.0 · Public Beta",
     "hero.title.1":     "A minimal",

@@ -40,6 +40,12 @@
     </div>
   </nav>
 
+  <div class="macos-banner" id="macosBanner">
+    <span class="macos-banner__text" data-i18n="macos.warning">macOS 用户：下载安装后若提示「已损坏」，请打开终端运行：</span>
+    <code class="macos-banner__cmd">xattr -cr /Applications/FView\ Power.app</code>
+    <button class="macos-banner__close" id="macosBannerClose" aria-label="关闭">×</button>
+  </div>
+
   <main id="top">
     <!-- ============ HERO ============ -->
     <section class="hero">
@@ -295,6 +301,19 @@
           }
         });
       });
+
+      // macOS warning banner dismiss
+      (() => {
+        const banner = document.getElementById('macosBanner');
+        const btn = document.getElementById('macosBannerClose');
+        if (!banner || !btn) return;
+        const KEY = 'fvpower-macos-banner';
+        if (localStorage.getItem(KEY) === 'dismissed') banner.style.display = 'none';
+        btn.addEventListener('click', () => {
+          banner.style.display = 'none';
+          localStorage.setItem(KEY, 'dismissed');
+        });
+      })();
     })();
   </script>
 </body>
