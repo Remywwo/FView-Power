@@ -176,6 +176,8 @@ export default function App() {
             onSelectFile={loadFromPath}
             onClose={() => { folder.close(); close(); }}
             onRefresh={folder.refresh}
+            onCreateFile={folder.createFile}
+            onCreateFolder={folder.createFolder}
             loading={folder.loading}
             error={folder.error}
           />

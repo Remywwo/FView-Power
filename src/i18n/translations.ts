@@ -94,6 +94,11 @@ export const translations = {
     folder: {
       refresh: "Refresh",
       close: "Close folder",
+      newFile: "New File",
+      newFolder: "New Folder",
+      enterName: "Enter name...",
+      cancel: "Cancel",
+      ok: "Create",
     },
     help: {
       intro: "A minimal file previewer & editor for macOS, Windows, and Linux.",
@@ -230,6 +235,11 @@ export const translations = {
     folder: {
       refresh: "刷新",
       close: "关闭文件夹",
+      newFile: "新建文件",
+      newFolder: "新建文件夹",
+      enterName: "输入名称...",
+      cancel: "取消",
+      ok: "创建",
     },
     help: {
       intro: "一个极简的文件预览与编辑器，跨 macOS、Windows 和 Linux。",

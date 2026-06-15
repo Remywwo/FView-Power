@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import type { FolderNode } from "@/utils/scanFolder";
 import { collectFolderPaths } from "@/utils/scanFolder";
 import { useI18n } from "@/hooks/useI18n";
@@ -9,20 +9,22 @@ interface Props {
   onSelectFile: (path: string) => void;
   onClose: () => void;
   onRefresh: () => void;
+  onCreateFile: (dirPath: string, name: string) => void;
+  onCreateFolder: (dirPath: string, name: string) => void;
   loading: boolean;
   error: string | null;
 }
 
-export function FolderTree({ root, selectedPath, onSelectFile, onClose, onRefresh, loading, error }: Props) {
+export function FolderTree({ root, selectedPath, onSelectFile, onClose, onRefresh, onCreateFile, onCreateFolder, loading, error }: Props) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set([root.path]));
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; dirPath: string } | null>(null);
+  const [createInput, setCreateInput] = useState<{ dirPath: string; kind: "file" | "folder" } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // When selectedPath changes (user opened a file), expand all its ancestor folders
   useEffect(() => {
     if (!selectedPath) return;
     const allFolders = collectFolderPaths(root);
-    // Only expand folders that are ancestors of selectedPath
-    // (a folder is an ancestor if selectedPath starts with folder.path + separator)
     const ancestors = new Set<string>([root.path]);
     for (const folderPath of allFolders) {
       if (selectedPath.startsWith(folderPath + "/") || selectedPath.startsWith(folderPath + "\\")) {
@@ -31,6 +33,10 @@ export function FolderTree({ root, selectedPath, onSelectFile, onClose, onRefres
     }
     setExpanded(ancestors);
   }, [selectedPath, root]);
+
+  useEffect(() => {
+    if (createInput && inputRef.current) inputRef.current.focus();
+  }, [createInput]);
 
   const toggle = (path: string) => {
     setExpanded((prev) => {
@@ -41,8 +47,39 @@ export function FolderTree({ root, selectedPath, onSelectFile, onClose, onRefres
     });
   };
 
+  const handleContextMenu = useCallback((e: React.MouseEvent, dirPath: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCtxMenu({ x: e.clientX, y: e.clientY, dirPath });
+  }, []);
+
+  const closeCtxMenu = useCallback(() => setCtxMenu(null), []);
+
+  const handleCreate = useCallback((kind: "file" | "folder") => {
+    if (!ctxMenu) return;
+    setCreateInput({ dirPath: ctxMenu.dirPath, kind });
+    setCtxMenu(null);
+  }, [ctxMenu]);
+
+  const commitCreate = useCallback(() => {
+    if (!createInput || !inputRef.current) return;
+    const name = inputRef.current.value.trim();
+    if (!name) return;
+    if (createInput.kind === "file") {
+      onCreateFile(createInput.dirPath, name);
+    } else {
+      onCreateFolder(createInput.dirPath, name);
+    }
+    setCreateInput(null);
+  }, [createInput, onCreateFile, onCreateFolder]);
+
+  const handleCreateKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter") commitCreate();
+    if (e.key === "Escape") setCreateInput(null);
+  }, [commitCreate]);
+
   return (
-    <aside className="folder-sidebar">
+    <aside className="folder-sidebar" onClick={closeCtxMenu}>
       <div className="folder-sidebar-header">
         <span className="folder-sidebar-title" title={root.path}>{root.name}</span>
         <button onClick={onRefresh} disabled={loading} title={t("folder.refresh")} aria-label={t("folder.refresh")}>
@@ -69,9 +106,45 @@ export function FolderTree({ root, selectedPath, onSelectFile, onClose, onRefres
             selectedPath={selectedPath}
             onToggle={toggle}
             onSelectFile={onSelectFile}
+            onContextMenu={handleContextMenu}
           />
         </ul>
       </div>
+
+      {ctxMenu && (
+        <div
+          className="context-menu"
+          style={{ left: ctxMenu.x, top: ctxMenu.y, position: "fixed" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button className="context-menu-item" onClick={() => handleCreate("file")}>
+            {t("folder.newFile")}
+          </button>
+          <button className="context-menu-item" onClick={() => handleCreate("folder")}>
+            {t("folder.newFolder")}
+          </button>
+        </div>
+      )}
+
+      {createInput && (
+        <div className="create-input-overlay" onClick={() => setCreateInput(null)}>
+          <div className="create-input-box" onClick={(e) => e.stopPropagation()}>
+            <div className="create-input-title">
+              {createInput.kind === "file" ? t("folder.newFile") : t("folder.newFolder")}
+            </div>
+            <input
+              ref={inputRef}
+              className="create-input-field"
+              placeholder={t("folder.enterName")}
+              onKeyDown={handleCreateKeyDown}
+            />
+            <div className="create-input-actions">
+              <button onClick={() => setCreateInput(null)}>{t("folder.cancel")}</button>
+              <button className="primary" onClick={commitCreate}>{t("folder.ok")}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
@@ -83,9 +156,10 @@ interface NodeProps {
   selectedPath: string | null;
   onToggle: (path: string) => void;
   onSelectFile: (path: string) => void;
+  onContextMenu: (e: React.MouseEvent, dirPath: string) => void;
 }
 
-function TreeNode({ node, depth, expanded, selectedPath, onToggle, onSelectFile }: NodeProps) {
+function TreeNode({ node, depth, expanded, selectedPath, onToggle, onSelectFile, onContextMenu }: NodeProps) {
   if (!node.isDir) {
     return (
       <li>
@@ -110,6 +184,7 @@ function TreeNode({ node, depth, expanded, selectedPath, onToggle, onSelectFile 
         className="tree-row folder"
         style={{ paddingLeft: `${0.4 + depth * 0.85}rem` }}
         onClick={() => onToggle(node.path)}
+        onContextMenu={(e) => onContextMenu(e, node.path)}
         title={node.path}
       >
         <span className="tree-toggle" aria-hidden="true">
@@ -136,6 +211,7 @@ function TreeNode({ node, depth, expanded, selectedPath, onToggle, onSelectFile 
               selectedPath={selectedPath}
               onToggle={onToggle}
               onSelectFile={onSelectFile}
+              onContextMenu={onContextMenu}
             />
           ))}
         </ul>
@@ -164,24 +240,10 @@ function FolderIcon({ open }: { open: boolean }) {
 function FileIcon({ name }: { name: string }) {
   const ext = name.includes(".") ? name.slice(name.lastIndexOf(".") + 1).toLowerCase() : "";
   const colorMap: Record<string, string> = {
-    md: "#60a5fa",
-    markdown: "#60a5fa",
-    pdf: "#ef4444",
-    html: "#f97316",
-    htm: "#f97316",
-    json: "#eab308",
-    js: "#fbbf24",
-    ts: "#3b82f6",
-    tsx: "#3b82f6",
-    jsx: "#fbbf24",
-    css: "#a855f7",
-    scss: "#a855f7",
-    png: "#22c55e",
-    jpg: "#22c55e",
-    jpeg: "#22c55e",
-    gif: "#22c55e",
-    svg: "#22c55e",
-    txt: "#9ca3af",
+    md: "#60a5fa", markdown: "#60a5fa", pdf: "#ef4444", html: "#f97316", htm: "#f97316",
+    json: "#eab308", js: "#fbbf24", ts: "#3b82f6", tsx: "#3b82f6", jsx: "#fbbf24",
+    css: "#a855f7", scss: "#a855f7", png: "#22c55e", jpg: "#22c55e", jpeg: "#22c55e",
+    gif: "#22c55e", svg: "#22c55e", txt: "#9ca3af",
   };
   const color = colorMap[ext] || "var(--md-muted)";
   return (

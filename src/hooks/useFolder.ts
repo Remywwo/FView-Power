@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { writeTextFile, mkdir } from "@tauri-apps/plugin-fs";
+import { join } from "@tauri-apps/api/path";
 import { scanFolder, type FolderNode } from "@/utils/scanFolder";
 
 export function useFolder() {
@@ -52,10 +54,22 @@ export function useFolder() {
     }
   }, [root]);
 
+  const createFile = useCallback(async (dirPath: string, name: string) => {
+    const fullPath = await join(dirPath, name);
+    await writeTextFile(fullPath, "");
+    await refresh();
+  }, [refresh]);
+
+  const createFolder = useCallback(async (dirPath: string, name: string) => {
+    const fullPath = await join(dirPath, name);
+    await mkdir(fullPath);
+    await refresh();
+  }, [refresh]);
+
   const close = useCallback(() => {
     setRoot(null);
     setError(null);
   }, []);
 
-  return { root, loading, error, openFolder, setFolderPath, refresh, close };
+  return { root, loading, error, openFolder, setFolderPath, refresh, createFile, createFolder, close };
 }

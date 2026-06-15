@@ -721,3 +721,80 @@ html, body, #root {
 .toolbar .file-info { color: var(--md-muted); font-family: "JetBrains Mono", monospace; font-size: 0.8em; }
 .toolbar .dirty-dot { color: var(--md-accent); font-weight: 700; }
 .toolbar .divider { width: 1px; height: 18px; background: var(--md-border); }
+
+/* ---------- context menu ---------- */
+.context-menu {
+  background: var(--md-bg);
+  border: 1px solid var(--md-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 999;
+  min-width: 140px;
+  padding: 4px 0;
+}
+.context-menu-item {
+  display: block;
+  width: 100%;
+  padding: 6px 14px;
+  font-size: 0.82em;
+  color: var(--md-fg);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.context-menu-item:hover { background: var(--md-code-bg); }
+
+/* ---------- create input dialog ---------- */
+.create-input-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+}
+.create-input-box {
+  background: var(--md-bg);
+  border: 1px solid var(--md-border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  min-width: 280px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+.create-input-title {
+  font-weight: 600;
+  font-size: 0.9em;
+  margin-bottom: 12px;
+}
+.create-input-field {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 0.88em;
+  font-family: inherit;
+  color: var(--md-fg);
+  background: var(--md-code-bg);
+  border: 1px solid var(--md-border);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.create-input-field:focus { border-color: var(--md-accent); }
+.create-input-actions {
+  display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;
+}
+.create-input-actions button {
+  padding: 5px 14px;
+  font-size: 0.82em;
+  background: var(--md-code-bg);
+  border: 1px solid var(--md-border);
+  border-radius: 6px;
+  color: var(--md-fg);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.create-input-actions button.primary {
+  background: var(--md-accent);
+  color: #fff;
+  border-color: var(--md-accent);
+}
+.create-input-actions button:hover { opacity: 0.85; }
