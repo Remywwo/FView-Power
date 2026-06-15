@@ -3,33 +3,6 @@ import type { EditorView } from "@codemirror/view";
 
 const LOCK_MS = 80;
 
-function findTopmostSourceLine(container: HTMLElement): number | null {
-  const containerRect = container.getBoundingClientRect();
-  const visibleY = containerRect.top + 1;
-  const elements = container.querySelectorAll<HTMLElement>("[data-source-line]");
-  let best: { line: number; dist: number } | null = null;
-  for (const el of elements) {
-    const rect = el.getBoundingClientRect();
-    if (rect.bottom <= visibleY) continue;
-    if (rect.top >= containerRect.bottom) break;
-    const dist = Math.abs(rect.top - visibleY);
-    const line = parseInt(el.dataset.sourceLine || "0", 10);
-    if (line > 0 && (best === null || dist < best.dist)) {
-      best = { line, dist };
-    }
-  }
-  return best?.line ?? null;
-}
-
-function findFirstElementAtOrAfter(container: HTMLElement, targetLine: number): HTMLElement | null {
-  const elements = container.querySelectorAll<HTMLElement>("[data-source-line]");
-  for (const el of elements) {
-    const line = parseInt(el.dataset.sourceLine || "0", 10);
-    if (line >= targetLine) return el;
-  }
-  return null;
-}
-
 export function useScrollSync(
   editorView: EditorView | null,
   previewScroll: HTMLElement | null,
@@ -56,18 +29,13 @@ export function useScrollSync(
       if (isLocked()) return;
       cancelPending();
       rafRef.current = requestAnimationFrame(() => {
-        const scrollTop = editorScroll.scrollTop;
-        const lineHeight = editorView.defaultLineHeight || 20;
-        if (lineHeight <= 0) return;
-        const topLine = Math.floor(scrollTop / lineHeight) + 1;
-        const target = findFirstElementAtOrAfter(previewScroll, topLine);
-        if (target) {
-          lockUntilRef.current = performance.now() + LOCK_MS;
-          const containerRect = previewScroll.getBoundingClientRect();
-          const elRect = target.getBoundingClientRect();
-          const offsetInContainer = elRect.top - containerRect.top + previewScroll.scrollTop;
-          previewScroll.scrollTop = Math.max(0, offsetInContainer);
-        }
+        const eMax = editorScroll.scrollHeight - editorScroll.clientHeight;
+        if (eMax <= 0) return;
+        const pMax = previewScroll.scrollHeight - previewScroll.clientHeight;
+        if (pMax <= 0) return;
+        const progress = editorScroll.scrollTop / eMax;
+        lockUntilRef.current = performance.now() + LOCK_MS;
+        previewScroll.scrollTop = progress * pMax;
       });
     };
 
@@ -75,13 +43,13 @@ export function useScrollSync(
       if (isLocked()) return;
       cancelPending();
       rafRef.current = requestAnimationFrame(() => {
-        const topLine = findTopmostSourceLine(previewScroll);
-        if (topLine === null) return;
-        const lineHeight = editorView.defaultLineHeight || 20;
-        if (lineHeight <= 0) return;
-        const targetScrollTop = (topLine - 1) * lineHeight;
+        const pMax = previewScroll.scrollHeight - previewScroll.clientHeight;
+        if (pMax <= 0) return;
+        const eMax = editorScroll.scrollHeight - editorScroll.clientHeight;
+        if (eMax <= 0) return;
+        const progress = previewScroll.scrollTop / pMax;
         lockUntilRef.current = performance.now() + LOCK_MS;
-        editorScroll.scrollTop = targetScrollTop;
+        editorScroll.scrollTop = progress * eMax;
       });
     };
 
