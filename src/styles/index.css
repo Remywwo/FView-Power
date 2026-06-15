@@ -95,7 +95,6 @@ html, body, #root {
 
 /* Smooth scroll for Markdown preview anchor jumps */
 .preview-scroll {
-  scroll-behavior: smooth;
   scrollbar-gutter: stable;
 }
 
