@@ -4,7 +4,7 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { homedir, platform } from "node:os";
-import { join } from "node:path";
+import { delimiter, join, resolve } from "node:path";
 
 function isExecutable(p) {
   if (!p) return false;
@@ -16,15 +16,21 @@ function isExecutable(p) {
 
 function findCargoDir() {
   const exe = platform === "win32" ? "cargo.exe" : "cargo";
+  const home = homedir();
   const candidates = [
-    join(homedir(), ".cargo", "bin"),                    // rustup default
+    process.env.CARGO_HOME ? join(process.env.CARGO_HOME, "bin") : null,
+    platform === "win32" && process.env.USERPROFILE
+      ? join(process.env.USERPROFILE, ".cargo", "bin")
+      : null,
+    join(home, ".cargo", "bin"),                        // rustup default
+    platform === "win32" ? "C:\\Users\\runneradmin\\.cargo\\bin" : null,
+    platform === "win32" ? "C:\\Program Files\\Rust\\bin" : null,
     "/opt/homebrew/bin",                                // macOS Apple Silicon Homebrew
     "/usr/local/bin",                                   // macOS Intel / Linux Homebrew
     "/usr/bin",
     "/root/.cargo/bin",                                 // Linux root user
-    "C:\\Users\\runneradmin\\.cargo\\bin",              // GitHub Actions windows
-    "C:\\Program Files\\Rust\\bin",                     // Windows standalone
-  ];
+    "/home/runner/.cargo/bin",                          // GitHub Actions Linux
+  ].filter(Boolean);
   for (const dir of candidates) {
     if (isExecutable(join(dir, exe))) return dir;
   }
@@ -34,14 +40,21 @@ function findCargoDir() {
 const cargoDir = findCargoDir();
 if (!cargoDir) {
   console.error("[with-path] Could not locate cargo. Tried:");
-  for (const d of [
+  const tried = [
+    process.env.CARGO_HOME ? join(process.env.CARGO_HOME, "bin") : null,
+    platform === "win32" && process.env.USERPROFILE
+      ? join(process.env.USERPROFILE, ".cargo", "bin")
+      : null,
     join(homedir(), ".cargo", "bin"),
+    platform === "win32" ? "C:\\Users\\runneradmin\\.cargo\\bin" : null,
+    platform === "win32" ? "C:\\Program Files\\Rust\\bin" : null,
     "/opt/homebrew/bin",
     "/usr/local/bin",
     "/usr/bin",
-  ]) {
-    console.error("  -", d);
-  }
+    "/root/.cargo/bin",
+    "/home/runner/.cargo/bin",
+  ].filter(Boolean);
+  for (const d of tried) console.error("  -", d);
   console.error("\nPlease install Rust via https://rustup.rs/");
   process.exit(1);
 }

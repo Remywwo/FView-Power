@@ -58,6 +58,10 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Add cross-compile target
+        if: matrix.platform == 'macos (Intel)'
+        run: rustup target add x86_64-apple-darwin
+
       - name: Cache cargo
         uses: actions/cache@v4
         with:
