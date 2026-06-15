@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { html } from "@codemirror/lang-html";
-import { EditorView } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
+import { searchKeymap } from "@codemirror/search";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { invoke } from "@tauri-apps/api/core";
 import type { LoadedFile } from "@/hooks/useFileLoader";
@@ -34,6 +35,7 @@ export function HtmlPreview({ file, setContent, isDark }: Props) {
     () => [
       html(),
       EditorView.lineWrapping,
+      keymap.of(searchKeymap),
       EditorView.theme({
         ".cm-content": { lineHeight: "var(--cm-line-height)" },
         ".cm-line": { lineHeight: "inherit" },

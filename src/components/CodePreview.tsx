@@ -1,6 +1,7 @@
 import { useMemo, type CSSProperties } from "react";
 import CodeMirror from "@uiw/react-codemirror";
-import { EditorView } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
+import { searchKeymap } from "@codemirror/search";
 import type { Extension } from "@codemirror/state";
 import type { LoadedFile } from "@/hooks/useFileLoader";
 import { useSettings } from "@/hooks/useSettings";
@@ -59,6 +60,7 @@ export function CodePreview({ file, setContent, isDark, readOnly = false }: Prop
     () => [
       ...languageExtension(file.language),
       EditorView.lineWrapping,
+      keymap.of(searchKeymap),
       EditorView.theme({
         ".cm-content": { lineHeight: "var(--cm-line-height)" },
         ".cm-line": { lineHeight: "inherit" },

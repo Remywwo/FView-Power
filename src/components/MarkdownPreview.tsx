@@ -9,7 +9,8 @@ import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { EditorView } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
+import { searchKeymap } from "@codemirror/search";
 import { open } from "@tauri-apps/plugin-shell";
 import type { LoadedFile } from "@/hooks/useFileLoader";
 import { useFileLoader } from "@/hooks/useFileLoader";
@@ -52,6 +53,7 @@ export function MarkdownPreview({ file, setContent, isDark }: Props) {
     () => [
       markdown({ base: markdownLanguage, codeLanguages: languages }),
       EditorView.lineWrapping,
+      keymap.of(searchKeymap),
       EditorView.theme({
         ".cm-content": { lineHeight: "var(--cm-line-height)" },
         ".cm-line": { lineHeight: "inherit" },
