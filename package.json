@@ -11,7 +11,8 @@
     "tauri": "node scripts/with-path.mjs tauri",
     "tauri:dev": "node scripts/with-path.mjs tauri dev",
     "tauri:build": "node scripts/with-path.mjs tauri build",
-    "tauri:ci": "tauri"
+    "tauri:ci": "tauri",
+    "release": "bash scripts/release.sh"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.0",
