@@ -128,10 +128,16 @@ export function useFileLoader(): UseFileLoaderApi {
     const cur = currentRef.current;
     if (!cur || !cur.isEditable) return;
     try {
+      const ext = cur.extension;
+      const filters = [];
+      if (ext) {
+        filters.push({ name: `${ext.toUpperCase()} (.${ext})`, extensions: [ext] });
+      }
+      filters.push({ name: "All Files", extensions: ["*"] });
       const target = await saveDialog({
         defaultPath: cur.path || cur.name,
         title: "Save As",
-        filters: [{ name: "All Files", extensions: ["*"] }],
+        filters,
       });
       if (!target) return;
       await writeTextFile(target, cur.content);
