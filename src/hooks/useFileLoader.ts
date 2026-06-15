@@ -27,8 +27,7 @@ interface UseFileLoaderApi {
   loadFromPath: (path: string) => Promise<void>;
   setContent: (content: string) => void;
   close: () => void;
-  toggleTheme: () => void;
-  isDark: boolean;
+  setError: (e: string | null) => void;
 }
 
 function bytesToString(bytes: Uint8Array): string {
@@ -83,25 +82,8 @@ export function useFileLoader(): UseFileLoaderApi {
   const [current, setCurrent] = useState<LoadedFile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    const stored = localStorage.getItem("fview:theme");
-    if (stored) return stored === "dark";
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
-  });
   const currentRef = useRef<LoadedFile | null>(null);
   currentRef.current = current;
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDark) {
-      root.classList.add("dark");
-      localStorage.setItem("fview:theme", "dark");
-    } else {
-      root.classList.remove("dark");
-      localStorage.setItem("fview:theme", "light");
-    }
-  }, [isDark]);
 
   const loadFromPath = useCallback(async (path: string) => {
     try {
@@ -187,10 +169,6 @@ export function useFileLoader(): UseFileLoaderApi {
     setError(null);
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    setIsDark((d) => !d);
-  }, []);
-
   // CLI args: read first positional file argument on startup
   useEffect(() => {
     (async () => {
@@ -221,14 +199,11 @@ export function useFileLoader(): UseFileLoaderApi {
       } else if (meta && e.key.toLowerCase() === "w") {
         e.preventDefault();
         close();
-      } else if (meta && e.key === ".") {
-        e.preventDefault();
-        toggleTheme();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [open, save, saveAs, close, toggleTheme]);
+  }, [open, save, saveAs, close]);
 
-  return { current, loading, error, open, save, saveAs, loadFromPath, setContent, close, toggleTheme, isDark };
+  return { current, loading, error, open, save, saveAs, loadFromPath, setContent, close, setError };
 }

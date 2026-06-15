@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="fg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="192" ry="192" fill="url(#bg)" />
+
+  <!-- F: vertical + top + middle (shorter) -->
+  <g fill="url(#fg)">
+    <rect x="162" y="272" width="80" height="480" />
+    <rect x="162" y="272" width="200" height="80" />
+    <rect x="162" y="488" width="140" height="80" />
+  </g>
+
+  <!-- V: two diagonal strokes meeting at the bottom (traced as a single closed path) -->
+  <path
+    fill="url(#fg)"
+    d="M 412 272
+       L 492 272
+       L 512 296
+       L 532 272
+       L 612 272
+       L 558 512
+       L 512 752
+       L 466 512
+       Z"
+  />
+
+  <!-- B: left vertical + top + middle + bottom + two right verticals
+       (top half slightly narrower than bottom half for traditional B silhouette) -->
+  <g fill="url(#fg)">
+    <rect x="662" y="272" width="80" height="480" />
+    <rect x="662" y="272" width="150" height="80" />
+    <rect x="662" y="488" width="200" height="80" />
+    <rect x="662" y="672" width="200" height="80" />
+    <rect x="732" y="272" width="80" height="240" />
+    <rect x="782" y="488" width="80" height="264" />
+  </g>
+</svg>

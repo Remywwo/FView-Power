@@ -1,0 +1,131 @@
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+
+export type FontFamily = "system" | "sans" | "serif" | "mono";
+export type FontSize = number;
+export type LineHeight = number;
+
+export const MIN_FONT_SIZE = 8;
+export const MAX_FONT_SIZE = 72;
+export const DEFAULT_FONT_SIZE = 15;
+
+export const MIN_LINE_HEIGHT = 1.1;
+export const MAX_LINE_HEIGHT = 2.5;
+export const DEFAULT_LINE_HEIGHT = 1.6;
+
+export interface LineHeightOption {
+  value: number;
+  label: string;
+}
+
+export const LINE_HEIGHTS: LineHeightOption[] = [
+  { value: 1.35, label: "Compact" },
+  { value: 1.5, label: "Default" },
+  { value: 1.6, label: "Comfortable" },
+  { value: 1.8, label: "Relaxed" },
+  { value: 2.0, label: "Loose" },
+];
+
+export interface Settings {
+  fontFamily: FontFamily;
+  fontSize: FontSize;
+  lineHeight: LineHeight;
+}
+
+const DEFAULT_SETTINGS: Settings = {
+  fontFamily: "system",
+  fontSize: DEFAULT_FONT_SIZE,
+  lineHeight: DEFAULT_LINE_HEIGHT,
+};
+
+const STORAGE_KEY = "fview:settings";
+
+function loadSettings(): Settings {
+  if (typeof window === "undefined") return DEFAULT_SETTINGS;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return DEFAULT_SETTINGS;
+    const parsed = JSON.parse(stored);
+    const size = Number(parsed.fontSize);
+    const lh = Number(parsed.lineHeight);
+    return {
+      fontFamily: (parsed.fontFamily as FontFamily) || DEFAULT_SETTINGS.fontFamily,
+      fontSize: Number.isFinite(size) && size >= MIN_FONT_SIZE && size <= MAX_FONT_SIZE
+        ? size
+        : DEFAULT_SETTINGS.fontSize,
+      lineHeight: Number.isFinite(lh) && lh >= MIN_LINE_HEIGHT && lh <= MAX_LINE_HEIGHT
+        ? lh
+        : DEFAULT_SETTINGS.lineHeight,
+    };
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+export interface FontOption {
+  value: FontFamily;
+  label: string;
+  stack?: string;
+}
+
+export const FONT_FAMILIES: FontOption[] = [
+  { value: "system", label: "System" },
+  {
+    value: "sans",
+    label: "Sans",
+    stack: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
+  },
+  {
+    value: "serif",
+    label: "Serif",
+    stack: 'Georgia, Cambria, "Times New Roman", Times, serif',
+  },
+  {
+    value: "mono",
+    label: "Monospace",
+    stack: '"JetBrains Mono", "SF Mono", Menlo, Monaco, Consolas, monospace',
+  },
+];
+
+export function getFontStack(family: FontFamily): string | undefined {
+  return FONT_FAMILIES.find((f) => f.value === family)?.stack;
+}
+
+interface SettingsContextValue {
+  settings: Settings;
+  update: (patch: Partial<Settings>) => void;
+  reset: () => void;
+}
+
+const SettingsContext = createContext<SettingsContextValue | null>(null);
+
+export function SettingsProvider({ children }: { children: ReactNode }) {
+  const [settings, setSettings] = useState<Settings>(loadSettings);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch {
+      // ignore
+    }
+  }, [settings]);
+
+  const update = useCallback((patch: Partial<Settings>) => {
+    setSettings((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const reset = useCallback(() => {
+    setSettings(DEFAULT_SETTINGS);
+  }, []);
+
+  return (
+    <SettingsContext.Provider value={{ settings, update, reset }}>
+      {children}
+    </SettingsContext.Provider>
+  );
+}
+
+export function useSettings(): SettingsContextValue {
+  const ctx = useContext(SettingsContext);
+  if (!ctx) throw new Error("useSettings must be used within SettingsProvider");
+  return ctx;
+}

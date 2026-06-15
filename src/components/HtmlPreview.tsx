@@ -1,9 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { html } from "@codemirror/lang-html";
+import { EditorView } from "@codemirror/view";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { invoke } from "@tauri-apps/api/core";
 import type { LoadedFile } from "@/hooks/useFileLoader";
+import { useSettings } from "@/hooks/useSettings";
+import { useI18n } from "@/hooks/useI18n";
+
+const CODE_FONT_FAMILY = '"JetBrains Mono", "SF Mono", Menlo, Monaco, Consolas, monospace';
 
 interface Props {
   file: LoadedFile;
@@ -14,14 +19,34 @@ interface Props {
 type Mode = "split" | "editor" | "preview";
 
 export function HtmlPreview({ file, setContent, isDark }: Props) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("split");
   const [port, setPort] = useState<number | null>(null);
   const [iframeKey, setIframeKey] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
+  const { settings } = useSettings();
   const fileRef = useRef(file);
   fileRef.current = file;
   const latestContentRef = useRef(file.content);
   latestContentRef.current = file.content;
+
+  const extensions = useMemo(
+    () => [
+      html(),
+      EditorView.theme({
+        ".cm-content": { lineHeight: "var(--cm-line-height)" },
+        ".cm-line": { lineHeight: "inherit" },
+        ".cm-gutters": { lineHeight: "inherit" },
+      }),
+    ],
+    [settings.lineHeight],
+  );
+
+  const editorStyle = {
+    "--cm-font-family": CODE_FONT_FAMILY,
+    "--cm-font-size": `${settings.fontSize}px`,
+    "--cm-line-height": String(settings.lineHeight),
+  } as CSSProperties;
 
   // Start server when file changes
   useEffect(() => {
@@ -81,7 +106,7 @@ export function HtmlPreview({ file, setContent, isDark }: Props) {
       value={file.content}
       onChange={setContent}
       theme={isDark ? "dark" : "light"}
-      extensions={[html()]}
+      extensions={extensions}
       basicSetup={{
         lineNumbers: true,
         foldGutter: true,
@@ -90,7 +115,7 @@ export function HtmlPreview({ file, setContent, isDark }: Props) {
         closeBrackets: true,
         autocompletion: true,
       }}
-      style={{ height: "100%" }}
+      style={{ height: "100%", ...editorStyle }}
     />
   );
 
@@ -126,21 +151,21 @@ export function HtmlPreview({ file, setContent, isDark }: Props) {
         <span className="file-info">{file.name}</span>
         <span className="divider" />
         <button onClick={() => setMode("split")} disabled={mode === "split"}>
-          Split
+          {t("html.split")}
         </button>
         <button onClick={() => setMode("editor")} disabled={mode === "editor"}>
-          Edit
+          {t("html.edit")}
         </button>
         <button onClick={() => setMode("preview")} disabled={mode === "preview"}>
-          Preview
+          {t("html.preview")}
         </button>
         <span className="divider" />
         <button
           onClick={() => setIframeKey((k) => k + 1)}
           disabled={port === null}
-          title="Reload preview"
+          title={t("html.reloadTitle")}
         >
-          Reload
+          {t("html.reload")}
         </button>
         <div className="spacer" />
         {port !== null && (

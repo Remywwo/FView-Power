@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "FView",
+  "productName": "FView Power",
   "version": "0.1.0",
-  "identifier": "com.fview.app",
+  "identifier": "com.fview.power",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,9 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "FView",
-        "width": 1100,
-        "height": 760,
+        "title": "FView Power",
+        "width": 1440,
+        "height": 900,
         "minWidth": 600,
         "minHeight": 400,
         "resizable": true,
@@ -31,8 +31,8 @@
   },
   "plugins": {
     "cli": {
-      "description": "Open a file in FView",
-      "longDescription": "Open a file in FView. Supports Markdown, PDF, TXT, code, HTML, and images.",
+      "description": "Open a file in FView Power",
+      "longDescription": "Open a file in FView Power. Supports Markdown, PDF, TXT, code, HTML, and images.",
       "args": [
         {
           "name": "file",
@@ -55,6 +55,6 @@
     ],
     "category": "DeveloperTool",
     "shortDescription": "Minimal file preview & editor",
-    "longDescription": "A Typora-like minimal file preview & editor for Markdown, PDF, TXT, code, HTML, and images."
+    "longDescription": "FView Power — a minimal file preview & editor for Markdown, PDF, TXT, code, HTML, and images. With folder browser, settings, and bilingual UI."
   }
 }

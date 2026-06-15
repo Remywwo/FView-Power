@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import type { LoadedFile } from "@/hooks/useFileLoader";
+import { useI18n } from "@/hooks/useI18n";
 import { mimeForImage } from "@/utils/fileDetector";
 
 export function ImagePreview({ file }: { file: LoadedFile }) {
+  const { t } = useI18n();
   const [scale, setScale] = useState(1);
   const [src, setSrc] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,13 +48,13 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
         <button onClick={() => setScale((s) => Math.max(0.1, +(s - 0.1).toFixed(2)))}>−</button>
         <span className="file-info">{Math.round(scale * 100)}%</span>
         <button onClick={() => setScale((s) => Math.min(5, +(s + 0.1).toFixed(2)))}>+</button>
-        <button onClick={() => setScale(1)}>Reset</button>
-        <button onClick={() => setScale((s) => Math.min(5, +(s + 0.2).toFixed(2)))}>Fit</button>
+        <button onClick={() => setScale(1)}>{t("image.reset")}</button>
+        <button onClick={() => setScale((s) => Math.min(5, +(s + 0.2).toFixed(2)))}>{t("image.fit")}</button>
         <div className="spacer" />
-        <span className="file-info">read-only</span>
+        <span className="file-info">{t("image.readOnly")}</span>
       </div>
       <div className="flex-1 min-h-0 overflow-auto" style={{ background: "var(--md-code-bg)" }}>
-        {error && <div className="empty-state"><div className="title" style={{ color: "#ef4444" }}>Image error</div><div className="hint">{error}</div></div>}
+        {error && <div className="empty-state"><div className="title" style={{ color: "#ef4444" }}>{t("image.error")}</div><div className="hint">{error}</div></div>}
         {src && (
           <div className="flex justify-center items-center min-h-full p-6">
             <img

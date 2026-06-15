@@ -1,6 +1,10 @@
+import { useMemo, type CSSProperties } from "react";
 import CodeMirror from "@uiw/react-codemirror";
+import { EditorView } from "@codemirror/view";
 import type { Extension } from "@codemirror/state";
 import type { LoadedFile } from "@/hooks/useFileLoader";
+import { useSettings } from "@/hooks/useSettings";
+import { useI18n } from "@/hooks/useI18n";
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
 import { rust } from "@codemirror/lang-rust";
@@ -8,6 +12,8 @@ import { json } from "@codemirror/lang-json";
 import { css } from "@codemirror/lang-css";
 import { html } from "@codemirror/lang-html";
 import { xml } from "@codemirror/lang-xml";
+
+const CODE_FONT_FAMILY = '"JetBrains Mono", "SF Mono", Menlo, Monaco, Consolas, monospace';
 
 interface Props {
   file: LoadedFile;
@@ -46,6 +52,27 @@ function languageExtension(lang: string | undefined): Extension[] {
 }
 
 export function CodePreview({ file, setContent, isDark, readOnly = false }: Props) {
+  const { settings } = useSettings();
+  const { t } = useI18n();
+
+  const extensions = useMemo<Extension[]>(
+    () => [
+      ...languageExtension(file.language),
+      EditorView.theme({
+        ".cm-content": { lineHeight: "var(--cm-line-height)" },
+        ".cm-line": { lineHeight: "inherit" },
+        ".cm-gutters": { lineHeight: "inherit" },
+      }),
+    ],
+    [file.language, settings.lineHeight],
+  );
+
+  const editorStyle = {
+    "--cm-font-family": CODE_FONT_FAMILY,
+    "--cm-font-size": `${settings.fontSize}px`,
+    "--cm-line-height": String(settings.lineHeight),
+  } as CSSProperties;
+
   return (
     <div className="flex flex-col h-full">
       <div className="toolbar">
@@ -59,7 +86,7 @@ export function CodePreview({ file, setContent, isDark, readOnly = false }: Prop
         {readOnly && (
           <>
             <span className="divider" />
-            <span className="file-info" style={{ color: "var(--md-muted)" }}>read-only</span>
+            <span className="file-info" style={{ color: "var(--md-muted)" }}>{t("code.readOnly")}</span>
           </>
         )}
       </div>
@@ -68,7 +95,7 @@ export function CodePreview({ file, setContent, isDark, readOnly = false }: Prop
           value={file.content}
           onChange={readOnly ? undefined : setContent}
           theme={isDark ? "dark" : "light"}
-          extensions={languageExtension(file.language)}
+          extensions={extensions}
           editable={!readOnly}
           readOnly={readOnly}
           basicSetup={{
@@ -81,7 +108,7 @@ export function CodePreview({ file, setContent, isDark, readOnly = false }: Prop
             closeBrackets: !readOnly,
             autocompletion: !readOnly,
           }}
-          style={{ height: "100%" }}
+          style={{ height: "100%", ...editorStyle }}
         />
       </div>
     </div>

@@ -1,3 +1,5 @@
+import typography from "@tailwindcss/typography";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
@@ -34,22 +36,72 @@ export default {
       typography: {
         DEFAULT: {
           css: {
-            maxWidth: "none",
+            maxWidth: "860px",
+            "--tw-prose-body": "#2e3338",
+            "--tw-prose-headings": "#2e3338",
+            "--tw-prose-bold": "#2e3338",
+            "--tw-prose-counters": "#2e3338",
+            "--tw-prose-bullets": "#9ca3af",
+            "--tw-prose-links": "#2563eb",
+            "--tw-prose-hr": "#e5e7eb",
+            "--tw-prose-quotes": "#6b7280",
+            "--tw-prose-quote-borders": "#d1d5db",
+            "--tw-prose-code": "#2e3338",
+            "--tw-prose-pre-code": "#2e3338",
+            "--tw-prose-pre-bg": "#f6f8fa",
+            "--tw-prose-th-borders": "#e5e7eb",
+            "--tw-prose-td-borders": "#e5e7eb",
+            code: {
+              fontWeight: "400",
+            },
+            "code::before": { content: "none" },
+            "code::after": { content: "none" },
+            "blockquote p:first-of-type::before": { content: "none" },
+            "blockquote p:last-of-type::after": { content: "none" },
+            a: {
+              fontWeight: "400",
+              textDecoration: "none",
+              borderBottom: "1px solid transparent",
+              transition: "border-color 0.15s",
+            },
+            "a:hover": { borderBottomColor: "var(--tw-prose-links)" },
           },
         },
-      },
-      colors: {
-        typora: {
-          bg: "#ffffff",
-          "bg-dark": "#1e1e1e",
-          text: "#2e3338",
-          "text-dark": "#d1d5db",
-          muted: "#999",
-          border: "#e5e7eb",
-          "border-dark": "#374151",
+        invert: {
+          css: {
+            maxWidth: "860px",
+            "--tw-prose-body": "#d1d5db",
+            "--tw-prose-headings": "#d1d5db",
+            "--tw-prose-bold": "#d1d5db",
+            "--tw-prose-counters": "#d1d5db",
+            "--tw-prose-bullets": "#9ca3af",
+            "--tw-prose-links": "#60a5fa",
+            "--tw-prose-hr": "#374151",
+            "--tw-prose-quotes": "#9ca3af",
+            "--tw-prose-quote-borders": "#4b5563",
+            "--tw-prose-code": "#d1d5db",
+            "--tw-prose-pre-code": "#d1d5db",
+            "--tw-prose-pre-bg": "#2a2a2a",
+            "--tw-prose-th-borders": "#374151",
+            "--tw-prose-td-borders": "#374151",
+            code: {
+              fontWeight: "400",
+            },
+            "code::before": { content: "none" },
+            "code::after": { content: "none" },
+            "blockquote p:first-of-type::before": { content: "none" },
+            "blockquote p:last-of-type::after": { content: "none" },
+            a: {
+              fontWeight: "400",
+              textDecoration: "none",
+              borderBottom: "1px solid transparent",
+              transition: "border-color 0.15s",
+            },
+            "a:hover": { borderBottomColor: "var(--tw-prose-links)" },
+          },
         },
       },
     },
   },
-  plugins: [],
+  plugins: [typography],
 };

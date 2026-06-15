@@ -1,8 +1,9 @@
-// Generate a 1024x1024 PNG icon for FView (a stylized "FV" mark on rounded card)
+// Generate a 1024x1024 PNG icon for FView Power (a stylized "FVB" monogram on a dark rounded card)
 import { writeFileSync } from "fs";
 import { deflateSync } from "zlib";
 
 const SIZE = 1024;
+const r2 = 192; // corner radius
 
 function crc32(buf) {
   const table = new Uint32Array(256);
@@ -37,17 +38,54 @@ ihdr[10] = 0;
 ihdr[11] = 0;
 ihdr[12] = 0;
 
-const ACCENT = [99, 102, 241]; // indigo
-const BG_LIGHT = [245, 245, 247];
+function bgColor(t) {
+  // Vertical gradient #1e293b -> #0f172a
+  const r1 = 30, g1 = 41, b1 = 59;
+  const r2 = 15, g2 = 23, b2 = 42;
+  return [
+    Math.round(r1 + (r2 - r1) * t),
+    Math.round(g1 + (g2 - g1) * t),
+    Math.round(b1 + (b2 - b1) * t),
+  ];
+}
 
-const r2 = 200;
+function fgColor(t) {
+  // Subtle gradient slate-50 -> slate-300
+  const r1 = 248, g1 = 250, b1 = 252;
+  const r2 = 203, g2 = 213, b2 = 225;
+  return [
+    Math.round(r1 + (r2 - r1) * t),
+    Math.round(g1 + (g2 - g1) * t),
+    Math.round(b1 + (b2 - b1) * t),
+  ];
+}
+
+const cellW = 200;
+const cellH = 480;
+const gap = 50;
+const startX = (SIZE - (3 * cellW + 2 * gap)) / 2;
+const startY = (SIZE - cellH) / 2;
+const stroke = 80;
+
+const fX = startX;
+const vX = startX + cellW + gap;
+const bX = startX + 2 * (cellW + gap);
+const lY = startY;
+const midY = lY + cellH / 2;
+
+const inRect = (x, y, rx, ry, rw, rh) =>
+  x >= rx && x < rx + rw && y >= ry && y < ry + rh;
+
 const rows = [];
 for (let y = 0; y < SIZE; y++) {
   const row = Buffer.alloc(SIZE * 3 + 1);
   row[0] = 0;
+  const bg = bgColor(y / SIZE);
+  const fg = fgColor(y / SIZE);
+
   for (let x = 0; x < SIZE; x++) {
     const i = 1 + x * 3;
-    // Rounded card background
+
     const inside = !(
       (x < r2 && y < r2 && (r2 - x) ** 2 + (r2 - y) ** 2 > r2 ** 2) ||
       (x > SIZE - r2 && y < r2 && (x - (SIZE - r2)) ** 2 + (r2 - y) ** 2 > r2 ** 2) ||
@@ -59,57 +97,42 @@ for (let y = 0; y < SIZE; y++) {
     if (!inside) {
       r = 0; g = 0; b = 0;
     } else {
-      r = BG_LIGHT[0]; g = BG_LIGHT[1]; b = BG_LIGHT[2];
+      r = bg[0]; g = bg[1]; b = bg[2];
     }
 
-    // Draw "F" on the left
-    // F: vertical bar (left) + top horizontal + middle horizontal (shorter)
-    const fX = 220;
-    const fY = 280;
-    const fW = 380;  // total width of F area
-    const fH = 464;  // total height
-    const stroke = 96;
-    const fVertX = fX;
-    const fVertW = stroke;
-    const fVertH = fH;
-    const fTopX = fX;
-    const fTopW = fW;
-    const fTopH = stroke;
-    const fMidX = fX;
-    const fMidY = fY + (fH / 2) - (stroke / 2);
-    const fMidW = fW * 0.72;
-    const fMidH = stroke;
-
-    // Draw "V" on the right
-    // V: two diagonals approximated as 4 rotated rects → use simpler approximation
-    // We'll draw V as a series of stepped horizontal slices, each ~stroke wide
-    const vCenterX = fX + fW + 90 + (fW / 2);  // gap + center
-    const vWidth = fW;
-    const vTopY = fY;
-    const vBottomY = fY + fH;
-    const vHalfWidth = vWidth / 2;
-
-    const inRect = (rx, ry, rw, rh) =>
-      x >= rx && x < rx + rw && y >= ry && y < ry + rh;
-
     if (inside) {
-      // F
-      if (inRect(fVertX, fY, fVertW, fVertH)
-        || inRect(fTopX, fY, fTopW, fTopH)
-        || inRect(fMidX, fMidY, fMidW, fMidH)) {
-        r = ACCENT[0]; g = ACCENT[1]; b = ACCENT[2];
+      // F: vertical bar + top bar + middle bar (shorter)
+      if (
+        inRect(x, y, fX, lY, stroke, cellH) ||
+        inRect(x, y, fX, lY, cellW, stroke) ||
+        inRect(x, y, fX, lY + cellH * 0.45, cellW * 0.72, stroke)
+      ) {
+        r = fg[0]; g = fg[1]; b = fg[2];
       }
-      // V: stepped approximation, each row shifts the gap inward
-      else if (y >= vTopY && y < vBottomY) {
-        const progress = (y - vTopY) / (vBottomY - vTopY);
-        const offset = (progress - 0.5) * (vHalfWidth - stroke);
-        const innerLeft = vCenterX - vHalfWidth + Math.abs(offset);
-        const innerRight = vCenterX + vHalfWidth - Math.abs(offset);
-        if (x >= innerLeft && x < innerLeft + stroke) {
-          r = ACCENT[0]; g = ACCENT[1]; b = ACCENT[2];
-        } else if (x >= innerRight - stroke && x < innerRight) {
-          r = ACCENT[0]; g = ACCENT[1]; b = ACCENT[2];
+      // V: stepped diagonal (two strokes meeting at the bottom)
+      else if (y >= lY && y < lY + cellH) {
+        const progress = (y - lY) / cellH;
+        const offset = (progress - 0.5) * (cellW - stroke);
+        const leftEdge = vX + Math.abs(offset);
+        const rightEdge = vX + cellW - Math.abs(offset);
+        if (
+          (x >= leftEdge && x < leftEdge + stroke) ||
+          (x >= rightEdge - stroke && x < rightEdge)
+        ) {
+          r = fg[0]; g = fg[1]; b = fg[2];
         }
+      }
+      // B: left vertical + 3 horizontal bars + 2 right verticals
+      // (top half slightly narrower than bottom half for traditional B silhouette)
+      else if (
+        inRect(x, y, bX, lY, stroke, cellH) ||
+        inRect(x, y, bX, lY, cellW * 0.75, stroke) ||
+        inRect(x, y, bX, midY - stroke / 2, cellW, stroke) ||
+        inRect(x, y, bX, lY + cellH - stroke, cellW, stroke) ||
+        inRect(x, y, bX + cellW * 0.75 - stroke, lY, stroke, cellH / 2) ||
+        inRect(x, y, bX + cellW - stroke, midY, stroke, cellH / 2)
+      ) {
+        r = fg[0]; g = fg[1]; b = fg[2];
       }
     }
 
