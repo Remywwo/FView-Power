@@ -1,7 +1,7 @@
 [package]
-name = "fview"
+name = "fview-power"
 version = "0.1.0"
-description = "FView — a minimal, Typora-style file viewer & editor"
+description = "FView Power — a minimal file preview & editor"
 authors = ["you"]
 edition = "2021"
 rust-version = "1.70"

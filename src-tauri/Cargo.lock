@@ -1012,7 +1012,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fview"
+name = "fview-power"
 version = "0.1.0"
 dependencies = [
  "serde",
