@@ -302,17 +302,12 @@
         });
       });
 
-      // macOS warning banner dismiss
+      // macOS warning banner dismiss (session only)
       (() => {
         const banner = document.getElementById('macosBanner');
         const btn = document.getElementById('macosBannerClose');
         if (!banner || !btn) return;
-        const KEY = 'fvpower-macos-banner';
-        if (localStorage.getItem(KEY) === 'dismissed') banner.style.display = 'none';
-        btn.addEventListener('click', () => {
-          banner.style.display = 'none';
-          localStorage.setItem(KEY, 'dismissed');
-        });
+        btn.addEventListener('click', () => { banner.style.display = 'none'; });
       })();
     })();
   </script>
