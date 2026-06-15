@@ -1,0 +1,93 @@
+name: Update download links on release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update download links in docs
+        run: |
+          set -e
+          TAG="${{ github.event.release.tag_name }}"
+          REPO="${{ github.repository }}"
+
+          # Fetch asset names from the release
+          ASSETS=$(gh release view "$TAG" --repo "$REPO" --json assets \
+            --jq '.assets[].name' 2>/dev/null || echo "")
+
+          if [ -z "$ASSETS" ]; then
+            echo "No assets found for $TAG, skipping."
+            exit 0
+          fi
+
+          # Pick one artifact per platform (landing page has 3 buttons)
+          MAC=$(echo "$ASSETS" | grep -E '\.dmg$' | head -1)
+          WIN=$(echo "$ASSETS" | grep -E '\-setup\.(exe|msi)$' | head -1)
+          DEB=$(echo "$ASSETS" | grep -E '\.deb$' | head -1)
+
+          DL_BASE="https://github.com/$REPO/releases/download/$TAG"
+
+          echo "Resolved assets:"
+          echo "  macOS : ${MAC:-none}"
+          echo "  Windows: ${WIN:-none}"
+          echo "  Linux : ${DEB:-none}"
+
+          FILE="docs/index.html"
+
+          if [ -n "$MAC" ]; then
+            DL="$DL_BASE/$MAC"
+            # Replace the first /releases href that is mac-specific
+            # The macOS button uses an Apple logo SVG (path starts with M17.05...)
+            sed -i "0,/href=\"https:\/\/github.com\/.*\/releases[^\"]*\"/{
+              s|href=\"https://github.com/[^\"]*/releases[^\"]*\"|href=\"$DL\"|
+            }" "$FILE"
+            echo "✓ macOS link updated"
+          fi
+
+          if [ -n "$WIN" ]; then
+            DL="$DL_BASE/$WIN"
+            # Windows button uses a window-like SVG (path starts with M3 12...)
+            if grep -q 'M3 12V6\.75' "$FILE"; then
+              sed -i "/M3 12V6\.75/,/class=\"dl\"/{
+                /releases/{
+                  s|href=\"[^\"]*\"|href=\"$DL\"|
+                }
+              }" "$FILE"
+              echo "✓ Windows link updated"
+            fi
+          fi
+
+          if [ -n "$DEB" ]; then
+            DL="$DL_BASE/$DEB"
+            # Linux button uses Penguin SVG (path starts with M12.504...)
+            if grep -q 'M12\.504 0' "$FILE"; then
+              sed -i "/M12\.504 0/,/class=\"dl\"/{
+                /releases/{
+                  s|href=\"[^\"]*\"|href=\"$DL\"|
+                }
+              }" "$FILE"
+              echo "✓ Linux link updated"
+            fi
+          fi
+
+      - name: Commit and push
+        run: |
+          if git diff --quiet docs/index.html; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html
+          git commit -m "docs: auto-update download links for ${{ github.event.release.tag_name }}"
+          git push
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
