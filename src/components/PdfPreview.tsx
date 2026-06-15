@@ -68,12 +68,14 @@ export function PdfPreview({ file }: { file: LoadedFile }) {
   }, [file.path, file.binaryBytes]);
 
   useEffect(() => {
-    if (!docRef.current || !canvasRef.current) return;
+    if (!canvasRef.current) return;
     let cancelled = false;
     let renderTask: pdfjs.RenderTask | null = null;
+    const doc = docRef.current; // capture into local — never cross-doc via ref
+    if (!doc || currentPage < 1 || currentPage > pages) return;
     (async () => {
       try {
-        const page = await docRef.current!.getPage(currentPage);
+        const page = await doc.getPage(currentPage);
         if (cancelled) return;
         const viewport = page.getViewport({ scale });
         const canvas = canvasRef.current!;
