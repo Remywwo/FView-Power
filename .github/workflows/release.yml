@@ -1,0 +1,94 @@
+name: Release FView Power
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos (Apple Silicon)
+            os: macos-latest
+            args: --target aarch64-apple-darwin
+          - platform: macos (Intel)
+            os: macos-latest
+            args: --target x86_64-apple-darwin
+          - platform: windows
+            os: windows-latest
+            args: ''
+          - platform: linux
+            os: ubuntu-22.04
+            args: ''
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux deps
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            build-essential \
+            curl \
+            wget \
+            file
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock', 'src-tauri/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install npm deps
+        run: npm ci
+
+      - name: Build Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'FView Power ${{ github.ref_name }}'
+          releaseBody: 'See the assets below to download FView Power for your platform.'
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+
+  release-please:
+    name: Open release (if no manual one)
+    needs: build
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Trigger
+        run: echo "Builds complete. Check the draft release at ${{ github.server_url }}/${{ github.repository }}/releases"

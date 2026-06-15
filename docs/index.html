@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="FView Power — a minimal file preview & editor for Markdown, PDF, TXT, code, HTML, and images." />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>FView Power</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ============ NAV ============ -->
+  <nav class="nav">
+    <div class="nav__inner container">
+      <a href="#top" class="nav__brand">
+        <img src="assets/logo.svg" alt="FView Power" class="nav__logo" />
+        <span class="nav__title">FView Power</span>
+      </a>
+      <div class="nav__menu">
+        <a href="#features" data-i18n="nav.features">特性</a>
+        <a href="#screenshots" data-i18n="nav.screenshots">截图</a>
+        <a href="#shortcuts" data-i18n="nav.shortcuts">快捷键</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      </div>
+      <div class="nav__actions">
+        <button class="lang-toggle" id="langToggle" aria-label="Switch language">
+          <span class="lang-toggle__dot"></span>
+          <span id="langLabel">EN</span>
+        </button>
+        <a href="https://github.com/Remywwo/FView-Power" class="nav__github" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.04-.02-2.05-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.08 1.85 1.24 1.85 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.29 0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="top">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero__badge" data-i18n="hero.badge">v0.1.0 · 公开测试</div>
+        <h1 class="hero__title">
+          <span data-i18n="hero.title.1">极简的</span>
+          <span class="hero__title-accent" data-i18n="hero.title.2">文件预览器</span>
+        </h1>
+        <p class="hero__subtitle" data-i18n="hero.subtitle">
+          支持 Markdown、PDF、代码、图片、HTML 的桌面应用。文件夹浏览、双向滚动同步、PDF 大纲、漂浮目录、双语界面 —— 只为让你专注于内容。
+        </p>
+
+        <div class="hero__cta">
+          <a href="#download" class="btn btn--primary" data-i18n="hero.cta.download">下载</a>
+          <a href="#features" class="btn btn--ghost" data-i18n="hero.cta.learn">了解更多</a>
+        </div>
+
+        <div class="hero__meta">
+          <span class="hero__meta-dot"></span>
+          <span data-i18n="hero.meta">macOS · Windows · Linux</span>
+        </div>
+
+        <div class="hero__window" aria-hidden="true">
+          <div class="hero__window-bar">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="hero__window-body">
+            <div class="hero__window-sidebar">
+              <div class="bar bar--sm"></div>
+              <div class="bar bar--md"></div>
+              <div class="bar bar--sm"></div>
+              <div class="bar bar--lg"></div>
+              <div class="bar bar--md"></div>
+              <div class="bar bar--sm"></div>
+            </div>
+            <div class="hero__window-content">
+              <div class="bar bar--title"></div>
+              <div class="bar bar--text"></div>
+              <div class="bar bar--text"></div>
+              <div class="bar bar--text bar--short"></div>
+              <div class="bar bar--text"></div>
+              <div class="bar bar--text bar--short"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section id="features" class="section">
+      <div class="container">
+        <div class="section__head">
+          <span class="section__eyebrow" data-i18n="features.eyebrow">FEATURES</span>
+          <h2 class="section__title" data-i18n="features.title">为思考而设计</h2>
+          <p class="section__lead" data-i18n="features.lead">没有花哨的功能，只有让你专注于内容的工具。</p>
+        </div>
+
+        <div class="grid grid--3">
+          <article class="card">
+            <div class="card__num">01</div>
+            <h3 class="card__title" data-i18n="features.f1.title">文件夹浏览</h3>
+            <p class="card__body" data-i18n="features.f1.body">左侧树形目录，自动跳过 node_modules、target 等构建产物。拖拽文件夹即可打开。</p>
+          </article>
+          <article class="card">
+            <div class="card__num">02</div>
+            <h3 class="card__title" data-i18n="features.f2.title">Markdown 滚动同步</h3>
+            <p class="card__body" data-i18n="features.f2.body">编辑器与预览实时联动，目录自动浮现在右侧，悬停即可跳转。</p>
+          </article>
+          <article class="card">
+            <div class="card__num">03</div>
+            <h3 class="card__title" data-i18n="features.f3.title">PDF 大纲导航</h3>
+            <p class="card__body" data-i18n="features.f3.body">支持 ⌘G 跳页、方向键翻页、大纲浮动面板实时高亮当前位置。</p>
+          </article>
+          <article class="card">
+            <div class="card__num">04</div>
+            <h3 class="card__title" data-i18n="features.f4.title">拖拽打开</h3>
+            <p class="card__body" data-i18n="features.f4.body">把文件或文件夹直接拖进窗口，识别文件类型、立即渲染。</p>
+          </article>
+          <article class="card">
+            <div class="card__num">05</div>
+            <h3 class="card__title" data-i18n="features.f5.title">双语界面</h3>
+            <p class="card__body" data-i18n="features.f5.body">中文 / English 完整翻译，首次启动自动识别浏览器语言。</p>
+          </article>
+          <article class="card">
+            <div class="card__num">06</div>
+            <h3 class="card__title" data-i18n="features.f6.title">可定制排版</h3>
+            <p class="card__body" data-i18n="features.f6.body">字体、字号、行高、主题（亮 / 暗）自由组合，配置本地保存。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SCREENSHOTS ============ -->
+    <section id="screenshots" class="section section--alt">
+      <div class="container">
+        <div class="section__head">
+          <span class="section__eyebrow" data-i18n="screenshots.eyebrow">SCREENSHOTS</span>
+          <h2 class="section__title" data-i18n="screenshots.title">界面即内容</h2>
+          <p class="section__lead" data-i18n="screenshots.lead">没有 chrome、没有装饰，每一像素都为内容服务。</p>
+        </div>
+
+        <div class="shots">
+          <figure class="shot">
+            <div class="shot__img shot__img--md" aria-label="Markdown preview">
+              <div class="shot__bar"></div>
+              <div class="shot__md-title"></div>
+              <div class="shot__md-text"></div>
+              <div class="shot__md-text"></div>
+              <div class="shot__md-text shot__md-text--short"></div>
+              <div class="shot__md-h2"></div>
+              <div class="shot__md-text"></div>
+              <div class="shot__md-text"></div>
+            </div>
+            <figcaption data-i18n="screenshots.cap1">Markdown · 滚动同步</figcaption>
+          </figure>
+          <figure class="shot">
+            <div class="shot__img shot__img--pdf" aria-label="PDF outline">
+              <div class="shot__pdf-side">
+                <div class="shot__pdf-item"></div>
+                <div class="shot__pdf-item shot__pdf-item--active"></div>
+                <div class="shot__pdf-item"></div>
+                <div class="shot__pdf-item"></div>
+              </div>
+              <div class="shot__pdf-page"></div>
+            </div>
+            <figcaption data-i18n="screenshots.cap2">PDF · 大纲导航</figcaption>
+          </figure>
+          <figure class="shot">
+            <div class="shot__img shot__img--code" aria-label="Code editor">
+              <div class="shot__code">
+                <div class="shot__code-line"><span class="shot__ln">1</span><span class="shot__kw">function</span> <span class="shot__fn">load</span>() {</div>
+                <div class="shot__code-line"><span class="shot__ln">2</span>  <span class="shot__kw">return</span> <span class="shot__fn">read</span>(path)</div>
+                <div class="shot__code-line"><span class="shot__ln">3</span>}</div>
+              </div>
+            </div>
+            <figcaption data-i18n="screenshots.cap3">代码 · 等宽字体</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SHORTCUTS ============ -->
+    <section id="shortcuts" class="section">
+      <div class="container">
+        <div class="section__head">
+          <span class="section__eyebrow" data-i18n="shortcuts.eyebrow">SHORTCUTS</span>
+          <h2 class="section__title" data-i18n="shortcuts.title">键盘即速度</h2>
+          <p class="section__lead" data-i18n="shortcuts.lead">离开鼠标，让一切都在指尖完成。</p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th data-i18n="shortcuts.col1">操作</th>
+                <th data-i18n="shortcuts.col2">macOS</th>
+                <th data-i18n="shortcuts.col3">Windows / Linux</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td data-i18n="shortcuts.s1">打开文件</td><td><kbd>⌘</kbd><kbd>O</kbd></td><td><kbd>Ctrl</kbd><kbd>O</kbd></td></tr>
+              <tr><td data-i18n="shortcuts.s2">打开文件夹</td><td><kbd>⇧</kbd><kbd>⌘</kbd><kbd>O</kbd></td><td><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>O</kbd></td></tr>
+              <tr><td data-i18n="shortcuts.s3">PDF 跳页</td><td><kbd>⌘</kbd><kbd>G</kbd></td><td><kbd>Ctrl</kbd><kbd>G</kbd></td></tr>
+              <tr><td data-i18n="shortcuts.s4">PDF 翻页</td><td><kbd>←</kbd> <kbd>→</kbd></td><td><kbd>←</kbd> <kbd>→</kbd></td></tr>
+              <tr><td data-i18n="shortcuts.s5">保存</td><td><kbd>⌘</kbd><kbd>S</kbd></td><td><kbd>Ctrl</kbd><kbd>S</kbd></td></tr>
+              <tr><td data-i18n="shortcuts.s6">另存为</td><td><kbd>⇧</kbd><kbd>⌘</kbd><kbd>S</kbd></td><td><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>S</kbd></td></tr>
+              <tr><td data-i18n="shortcuts.s7">设置</td><td><kbd>⌘</kbd><kbd>,</kbd></td><td><kbd>Ctrl</kbd><kbd>,</kbd></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DOWNLOAD / CTA ============ -->
+    <section id="download" class="section section--cta">
+      <div class="container container--narrow">
+        <h2 class="section__title" data-i18n="download.title">即刻开始</h2>
+        <p class="section__lead" data-i18n="download.lead">免费、开源、跨平台。</p>
+        <div class="download">
+          <a href="https://github.com/Remywwo/FView-Power/releases/latest" class="dl">
+            <div class="dl__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+            </div>
+            <div class="dl__body">
+              <div class="dl__name" data-i18n="download.mac">macOS</div>
+              <div class="dl__meta" data-i18n="download.macMeta">Apple Silicon · Intel</div>
+            </div>
+          </a>
+          <a href="https://github.com/Remywwo/FView-Power/releases/latest" class="dl">
+            <div class="dl__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 12V6.75l6-1.32v6.48L3 12zm17-9v8.75l-10 .15V5.21L20 3zM3 13l6 .09v6.81l-6-1.15V13zm17 .25V22l-10-1.91V13.1l10 .15z"/></svg>
+            </div>
+            <div class="dl__body">
+              <div class="dl__name" data-i18n="download.win">Windows</div>
+              <div class="dl__meta" data-i18n="download.winMeta">x64 · MSI / NSIS</div>
+            </div>
+          </a>
+          <a href="https://github.com/Remywwo/FView-Power/releases/latest" class="dl">
+            <div class="dl__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 0 0-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.57.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.072.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 0 0-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 0 1-.004-.021l-.004-.024a1.807 1.807 0 0 1-.15.706.953.953 0 0 1-.213.335c-.06.058-.124.114-.18.114-.067 0-.111-.023-.175-.082-.034-.03-.066-.067-.097-.103a1.245 1.245 0 0 1-.122-.156c-.034-.058-.066-.121-.096-.184-.029-.06-.055-.125-.075-.195a2.32 2.32 0 0 1-.038-.218c-.005-.034-.005-.066-.005-.1 0-.04 0-.08.005-.118a1.42 1.42 0 0 1 .05-.247c.026-.082.058-.16.097-.232.038-.073.083-.14.134-.197.05-.058.105-.108.166-.146.058-.04.12-.066.184-.084.058-.018.12-.027.184-.027a.59.59 0 0 1 .059 0z"/></svg>
+            </div>
+            <div class="dl__body">
+              <div class="dl__name" data-i18n="download.lin">Linux</div>
+              <div class="dl__meta" data-i18n="download.linMeta">.deb · .AppImage</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section id="faq" class="section">
+      <div class="container container--narrow">
+        <div class="section__head">
+          <span class="section__eyebrow" data-i18n="faq.eyebrow">FAQ</span>
+          <h2 class="section__title" data-i18n="faq.title">常见问题</h2>
+        </div>
+
+        <details class="qa" open>
+          <summary data-i18n="faq.q1">FView Power 是免费的吗？</summary>
+          <p data-i18n="faq.a1">是的，完全免费且开源。代码以 MIT 协议发布在 GitHub。</p>
+        </details>
+        <details class="qa">
+          <summary data-i18n="faq.q2">支持哪些文件类型？</summary>
+          <p data-i18n="faq.a2">Markdown (.md)、PDF、纯文本 (.txt)、代码文件（.js/.ts/.py/.go/.rs 等 30+ 种）、HTML、常见图片格式。</p>
+        </details>
+        <details class="qa">
+          <summary data-i18n="faq.q3">需要联网吗？</summary>
+          <p data-i18n="faq.a3">不需要。所有渲染都在本地完成，文件不会上传到任何服务器。</p>
+        </details>
+        <details class="qa">
+          <summary data-i18n="faq.q4">如何贡献？</summary>
+          <p data-i18n="faq.a4">欢迎在 GitHub 提 issue 或 PR。代码改动请遵循现有 TypeScript / React 编码风格。</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <span class="footer__mark">FVP</span>
+        <span data-i18n="footer.tagline">极简文件预览器</span>
+      </div>
+      <div class="footer__links">
+        <a href="#features" data-i18n="nav.features">特性</a>
+        <a href="#download" data-i18n="footer.download">下载</a>
+        <a href="https://github.com/Remywwo/FView-Power" data-i18n="footer.source">源代码</a>
+      </div>
+      <div class="footer__copy" data-i18n="footer.copy">© 2026 FView Power. MIT License.</div>
+    </div>
+  </footer>
+
+  <script src="js/i18n.js"></script>
+  <script>
+    (function () {
+      const KEY = 'fvpower-lang';
+      const btn = document.getElementById('langToggle');
+      const label = document.getElementById('langLabel');
+      const root = document.documentElement;
+
+      const apply = (lang) => {
+        const dict = window.FVPOWER_I18N[lang];
+        if (!dict) return;
+        document.querySelectorAll('[data-i18n]').forEach((el) => {
+          const key = el.getAttribute('data-i18n');
+          const v = dict[key];
+          if (typeof v === 'string') el.textContent = v;
+        });
+        root.setAttribute('lang', lang === 'zh' ? 'zh-CN' : 'en');
+        root.setAttribute('data-lang', lang);
+        label.textContent = lang === 'zh' ? 'EN' : '中文';
+        document.title = dict['meta.title'] || 'FView Power';
+      };
+
+      const saved = localStorage.getItem(KEY);
+      const initial = saved === 'en' || saved === 'zh'
+        ? saved
+        : (navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      apply(initial);
+
+      btn.addEventListener('click', () => {
+        const next = root.getAttribute('data-lang') === 'zh' ? 'en' : 'zh';
+        localStorage.setItem(KEY, next);
+        apply(next);
+      });
+
+      // smooth scroll
+      document.querySelectorAll('a[href^="#"]').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          const id = a.getAttribute('href');
+          if (id.length > 1) {
+            const el = document.querySelector(id);
+            if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
