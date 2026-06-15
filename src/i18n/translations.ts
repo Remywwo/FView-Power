@@ -103,13 +103,6 @@ export const translations = {
       rename: "Rename",
       confirmDelete: "Are you sure you want to delete this?",
     },
-    search: {
-      placeholder: "Search in files...",
-      searching: "Searching...",
-      noResults: "No results found",
-      startTyping: "Type to search across all files",
-      results: "{n} results",
-    },
     help: {
       intro: "A minimal file previewer & editor for macOS, Windows, and Linux.",
       hOpening: "Opening files",
@@ -253,13 +246,6 @@ export const translations = {
       delete: "删除",
       rename: "重命名",
       confirmDelete: "确定要删除吗？此操作不可撤销。",
-    },
-    search: {
-      placeholder: "在文件中搜索...",
-      searching: "搜索中...",
-      noResults: "未找到结果",
-      startTyping: "输入关键词搜索所有文件",
-      results: "{n} 个结果",
     },
     help: {
       intro: "一个极简的文件预览与编辑器，跨 macOS、Windows 和 Linux。",

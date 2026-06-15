@@ -5,8 +5,6 @@ import { useFolder } from "@/hooks/useFolder";
 import { useTheme } from "@/hooks/useTheme";
 import { useI18n } from "@/hooks/useI18n";
 import { DropZone } from "@/components/DropZone";
-import { SearchBar } from "@/components/SearchBar";
-import { useSearch } from "@/hooks/useSearch";
 import { MarkdownPreview } from "@/components/MarkdownPreview";
 import { CodePreview } from "@/components/CodePreview";
 import { HtmlPreview } from "@/components/HtmlPreview";
@@ -28,9 +26,6 @@ export default function App() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [openMenuOpen, setOpenMenuOpen] = useState(false);
   const openMenuRef = useRef<HTMLDivElement>(null);
-  const [searchVisible, setSearchVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const search = useSearch(folder.root);
 
   // Unified drop handler: detect file vs folder
   const handleDropPath = useCallback(async (path: string) => {
@@ -78,28 +73,6 @@ export default function App() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [theme.toggleTheme]);
-
-  // ⌘⇧F to search in files
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const meta = e.metaKey || e.ctrlKey;
-      if (meta && e.shiftKey && e.key.toLowerCase() === "f") {
-        e.preventDefault();
-        setSearchVisible((v) => !v);
-        setSearchQuery("");
-        search.clear();
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [search.clear]);
-
-  // Debounced search
-  useEffect(() => {
-    if (!searchQuery.trim()) { search.clear(); return; }
-    const t = setTimeout(() => search.search(searchQuery), 300);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
 
   // Close open menu on outside click or Esc
   useEffect(() => {
@@ -269,15 +242,6 @@ export default function App() {
 
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
-      <SearchBar
-        visible={searchVisible}
-        query={searchQuery}
-        onQueryChange={setSearchQuery}
-        results={search.results}
-        loading={search.loading}
-        onClose={() => { setSearchVisible(false); setSearchQuery(""); }}
-        onSelect={(path) => { loadFromPath(path); setSearchVisible(false); setSearchQuery(""); }}
-      />
     </div>
   );
 }
