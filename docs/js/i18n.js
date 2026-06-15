@@ -31,8 +31,8 @@
     "features.f3.body": "支持 ⌘G 跳页、方向键翻页、大纲浮动面板实时高亮当前位置。",
     "features.f4.title":"拖拽打开",
     "features.f4.body": "把文件或文件夹直接拖进窗口，识别文件类型、立即渲染。",
-    "features.f5.title":"双语界面",
-    "features.f5.body": "中文 / English 完整翻译，首次启动自动识别浏览器语言。",
+    "features.f5.title":"HTML 预览能力",
+    "features.f5.body": "本地 iframe 沙箱渲染，CSS / JS 完整保留，零网络请求。",
     "features.f6.title":"可定制排版",
     "features.f6.body": "字体、字号、行高、主题（亮 / 暗）自由组合，配置本地保存。",
 
@@ -110,8 +110,8 @@
     "features.f3.body": "⌘G to jump to a page, arrow keys to flip, floating outline panel with live highlighting.",
     "features.f4.title":"Drag and drop",
     "features.f4.body": "Drop files or folders straight into the window — the right viewer kicks in automatically.",
-    "features.f5.title":"Bilingual UI",
-    "features.f5.body": "Complete Chinese and English translations. Browser language is auto-detected on first launch.",
+    "features.f5.title":"HTML preview",
+    "features.f5.body": "Sandboxed local iframe — full CSS / JS preserved, zero network requests.",
     "features.f6.title":"Customisable typography",
     "features.f6.body": "Font, size, line-height, and theme (light / dark) — your settings are saved locally.",
 
