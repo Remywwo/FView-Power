@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import type { EditorView } from "@codemirror/view";
 
-const LOCK_MS = 80;
+const DELAY_MS = 50;
+const LOCK_MS = 120;
 
 export function useScrollSync(
   editorView: EditorView | null,
@@ -9,7 +10,7 @@ export function useScrollSync(
   enabled: boolean,
 ) {
   const lockUntilRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!enabled || !editorView || !previewScroll) return;
@@ -19,16 +20,16 @@ export function useScrollSync(
     const isLocked = () => performance.now() < lockUntilRef.current;
 
     const cancelPending = () => {
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
       }
     };
 
     const onEditorScroll = () => {
       if (isLocked()) return;
       cancelPending();
-      rafRef.current = requestAnimationFrame(() => {
+      timerRef.current = window.setTimeout(() => {
         const eMax = editorScroll.scrollHeight - editorScroll.clientHeight;
         if (eMax <= 0) return;
         const pMax = previewScroll.scrollHeight - previewScroll.clientHeight;
@@ -38,13 +39,13 @@ export function useScrollSync(
         else if (progress > 0.995) progress = 1;
         lockUntilRef.current = performance.now() + LOCK_MS;
         previewScroll.scrollTop = Math.round(progress * pMax);
-      });
+      }, DELAY_MS);
     };
 
     const onPreviewScroll = () => {
       if (isLocked()) return;
       cancelPending();
-      rafRef.current = requestAnimationFrame(() => {
+      timerRef.current = window.setTimeout(() => {
         const pMax = previewScroll.scrollHeight - previewScroll.clientHeight;
         if (pMax <= 0) return;
         const eMax = editorScroll.scrollHeight - editorScroll.clientHeight;
@@ -54,7 +55,7 @@ export function useScrollSync(
         else if (progress > 0.995) progress = 1;
         lockUntilRef.current = performance.now() + LOCK_MS;
         editorScroll.scrollTop = Math.round(progress * eMax);
-      });
+      }, DELAY_MS);
     };
 
     editorScroll.addEventListener("scroll", onEditorScroll, { passive: true });
