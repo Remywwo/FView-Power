@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import type { FolderNode } from "@/utils/scanFolder";
 
@@ -19,7 +19,7 @@ const READABLE_EXTS = new Set([
 
 function isReadable(name: string) {
   const dot = name.lastIndexOf(".");
-  if (dot === -1) return true; // no extension, treat as text
+  if (dot === -1) return true;
   return READABLE_EXTS.has(name.slice(dot + 1).toLowerCase());
 }
 
@@ -36,9 +36,12 @@ function* walkFiles(node: FolderNode): Generator<FolderNode> {
 export function useSearch(root: FolderNode | null) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const rootRef = useRef(root);
+  rootRef.current = root;
 
   const search = useCallback(async (query: string) => {
-    if (!root || !query.trim()) {
+    const r = rootRef.current;
+    if (!r || !query.trim()) {
       setResults([]);
       return;
     }
@@ -48,7 +51,7 @@ export function useSearch(root: FolderNode | null) {
     const MAX_RESULTS = 100;
 
     try {
-      for (const file of walkFiles(root)) {
+      for (const file of walkFiles(r)) {
         if (found.length >= MAX_RESULTS) break;
         try {
           const text = await readTextFile(file.path);
@@ -72,7 +75,7 @@ export function useSearch(root: FolderNode | null) {
     } finally {
       setLoading(false);
     }
-  }, [root]);
+  }, []);
 
   const clear = useCallback(() => setResults([]), []);
 

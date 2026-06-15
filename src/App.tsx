@@ -99,7 +99,7 @@ export default function App() {
     if (!searchQuery.trim()) { search.clear(); return; }
     const t = setTimeout(() => search.search(searchQuery), 300);
     return () => clearTimeout(t);
-  }, [searchQuery, search.search, search.clear]);
+  }, [searchQuery]);
 
   // Close open menu on outside click or Esc
   useEffect(() => {
