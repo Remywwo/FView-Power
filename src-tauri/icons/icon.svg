@@ -33,14 +33,11 @@
        Z"
   />
 
-  <!-- B: left vertical + top + middle + bottom + two right verticals
-       (top half slightly narrower than bottom half for traditional B silhouette) -->
+  <!-- P: left vertical + top + middle + right vertical (top half only) -->
   <g fill="url(#fg)">
     <rect x="662" y="272" width="80" height="480" />
-    <rect x="662" y="272" width="150" height="80" />
+    <rect x="662" y="272" width="200" height="80" />
     <rect x="662" y="488" width="200" height="80" />
-    <rect x="662" y="672" width="200" height="80" />
-    <rect x="732" y="272" width="80" height="240" />
-    <rect x="782" y="488" width="80" height="264" />
+    <rect x="782" y="272" width="80" height="240" />
   </g>
 </svg>

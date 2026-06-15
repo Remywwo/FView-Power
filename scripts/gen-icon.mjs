@@ -1,4 +1,4 @@
-// Generate a 1024x1024 PNG icon for FView Power (a stylized "FVB" monogram on a dark rounded card)
+// Generate a 1024x1024 PNG icon for FView Power (a stylized "FVP" monogram on a dark rounded card)
 import { writeFileSync } from "fs";
 import { deflateSync } from "zlib";
 
@@ -69,7 +69,7 @@ const stroke = 80;
 
 const fX = startX;
 const vX = startX + cellW + gap;
-const bX = startX + 2 * (cellW + gap);
+const pX = startX + 2 * (cellW + gap);
 const lY = startY;
 const midY = lY + cellH / 2;
 
@@ -122,15 +122,12 @@ for (let y = 0; y < SIZE; y++) {
           r = fg[0]; g = fg[1]; b = fg[2];
         }
       }
-      // B: left vertical + 3 horizontal bars + 2 right verticals
-      // (top half slightly narrower than bottom half for traditional B silhouette)
+      // P: left vertical + top bar + middle bar + right vertical (top half only)
       else if (
-        inRect(x, y, bX, lY, stroke, cellH) ||
-        inRect(x, y, bX, lY, cellW * 0.75, stroke) ||
-        inRect(x, y, bX, midY - stroke / 2, cellW, stroke) ||
-        inRect(x, y, bX, lY + cellH - stroke, cellW, stroke) ||
-        inRect(x, y, bX + cellW * 0.75 - stroke, lY, stroke, cellH / 2) ||
-        inRect(x, y, bX + cellW - stroke, midY, stroke, cellH / 2)
+        inRect(x, y, pX, lY, stroke, cellH) ||
+        inRect(x, y, pX, lY, cellW, stroke) ||
+        inRect(x, y, pX, midY - stroke / 2, cellW, stroke) ||
+        inRect(x, y, pX + cellW - stroke, lY, stroke, cellH / 2)
       ) {
         r = fg[0]; g = fg[1]; b = fg[2];
       }
