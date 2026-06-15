@@ -174,7 +174,7 @@ export default function App() {
             root={folder.root}
             selectedPath={current?.path ?? null}
             onSelectFile={loadFromPath}
-            onClose={folder.close}
+            onClose={() => { folder.close(); close(); }}
             onRefresh={folder.refresh}
             loading={folder.loading}
             error={folder.error}
