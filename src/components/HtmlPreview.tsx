@@ -33,6 +33,7 @@ export function HtmlPreview({ file, setContent, isDark }: Props) {
   const extensions = useMemo(
     () => [
       html(),
+      EditorView.lineWrapping,
       EditorView.theme({
         ".cm-content": { lineHeight: "var(--cm-line-height)" },
         ".cm-line": { lineHeight: "inherit" },

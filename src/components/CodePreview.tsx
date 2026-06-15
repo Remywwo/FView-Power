@@ -58,6 +58,7 @@ export function CodePreview({ file, setContent, isDark, readOnly = false }: Prop
   const extensions = useMemo<Extension[]>(
     () => [
       ...languageExtension(file.language),
+      EditorView.lineWrapping,
       EditorView.theme({
         ".cm-content": { lineHeight: "var(--cm-line-height)" },
         ".cm-line": { lineHeight: "inherit" },

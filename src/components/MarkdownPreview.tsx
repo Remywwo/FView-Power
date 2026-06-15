@@ -49,6 +49,7 @@ export function MarkdownPreview({ file, setContent, isDark }: Props) {
   const editorExtensions = useMemo(
     () => [
       markdown({ base: markdownLanguage, codeLanguages: languages }),
+      EditorView.lineWrapping,
       EditorView.theme({
         ".cm-content": { lineHeight: "var(--cm-line-height)" },
         ".cm-line": { lineHeight: "inherit" },
