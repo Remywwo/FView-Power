@@ -64,27 +64,7 @@
         </div>
 
         <div class="hero__window" aria-hidden="true">
-          <div class="hero__window-bar">
-            <span></span><span></span><span></span>
-          </div>
-          <div class="hero__window-body">
-            <div class="hero__window-sidebar">
-              <div class="bar bar--sm"></div>
-              <div class="bar bar--md"></div>
-              <div class="bar bar--sm"></div>
-              <div class="bar bar--lg"></div>
-              <div class="bar bar--md"></div>
-              <div class="bar bar--sm"></div>
-            </div>
-            <div class="hero__window-content">
-              <div class="bar bar--title"></div>
-              <div class="bar bar--text"></div>
-              <div class="bar bar--text"></div>
-              <div class="bar bar--text bar--short"></div>
-              <div class="bar bar--text"></div>
-              <div class="bar bar--text bar--short"></div>
-            </div>
-          </div>
+          <img src="./assets/first.png" />
         </div>
       </div>
     </section>
@@ -101,28 +81,28 @@
         <div class="grid grid--3">
           <article class="card">
             <div class="card__num">01</div>
-            <h3 class="card__title" data-i18n="features.f1.title">文件夹浏览</h3>
-            <p class="card__body" data-i18n="features.f1.body">左侧树形目录，自动跳过 node_modules、target 等构建产物。拖拽文件夹即可打开。</p>
+            <h3 class="card__title" data-i18n="features.f1.title">Markdown 滚动同步</h3>
+            <p class="card__body" data-i18n="features.f1.body">编辑器与预览实时联动，目录自动浮现在右侧，悬停即可跳转。</p>
           </article>
           <article class="card">
             <div class="card__num">02</div>
-            <h3 class="card__title" data-i18n="features.f2.title">Markdown 滚动同步</h3>
-            <p class="card__body" data-i18n="features.f2.body">编辑器与预览实时联动，目录自动浮现在右侧，悬停即可跳转。</p>
+            <h3 class="card__title" data-i18n="features.f2.title">HTML 预览能力</h3>
+            <p class="card__body" data-i18n="features.f2.body">本地 iframe 沙箱渲染，CSS / JS 完整保留，零网络请求。</p>
           </article>
           <article class="card">
             <div class="card__num">03</div>
-            <h3 class="card__title" data-i18n="features.f3.title">PDF 大纲导航</h3>
-            <p class="card__body" data-i18n="features.f3.body">支持 ⌘G 跳页、方向键翻页、大纲浮动面板实时高亮当前位置。</p>
+            <h3 class="card__title" data-i18n="features.f3.title">文件夹浏览</h3>
+            <p class="card__body" data-i18n="features.f3.body">左侧树形目录，自动跳过 node_modules、target 等构建产物。拖拽文件夹即可打开。</p>
           </article>
           <article class="card">
             <div class="card__num">04</div>
-            <h3 class="card__title" data-i18n="features.f4.title">拖拽打开</h3>
-            <p class="card__body" data-i18n="features.f4.body">把文件或文件夹直接拖进窗口，识别文件类型、立即渲染。</p>
+            <h3 class="card__title" data-i18n="features.f4.title">PDF 大纲导航</h3>
+            <p class="card__body" data-i18n="features.f4.body">支持 ⌘G 跳页、方向键翻页、大纲浮动面板实时高亮当前位置。</p>
           </article>
           <article class="card">
             <div class="card__num">05</div>
-            <h3 class="card__title" data-i18n="features.f5.title">HTML 预览能力</h3>
-            <p class="card__body" data-i18n="features.f5.body">本地 iframe 沙箱渲染，CSS / JS 完整保留，零网络请求。</p>
+            <h3 class="card__title" data-i18n="features.f5.title">拖拽打开</h3>
+            <p class="card__body" data-i18n="features.f5.body">把文件或文件夹直接拖进窗口，识别文件类型、立即渲染。</p>
           </article>
           <article class="card">
             <div class="card__num">06</div>
@@ -144,39 +124,12 @@
 
         <div class="shots">
           <figure class="shot">
-            <div class="shot__img shot__img--md" aria-label="Markdown preview">
-              <div class="shot__bar"></div>
-              <div class="shot__md-title"></div>
-              <div class="shot__md-text"></div>
-              <div class="shot__md-text"></div>
-              <div class="shot__md-text shot__md-text--short"></div>
-              <div class="shot__md-h2"></div>
-              <div class="shot__md-text"></div>
-              <div class="shot__md-text"></div>
-            </div>
+            <img src="./assets/md-preview.png" />
             <figcaption data-i18n="screenshots.cap1">Markdown · 滚动同步</figcaption>
           </figure>
           <figure class="shot">
-            <div class="shot__img shot__img--pdf" aria-label="PDF outline">
-              <div class="shot__pdf-side">
-                <div class="shot__pdf-item"></div>
-                <div class="shot__pdf-item shot__pdf-item--active"></div>
-                <div class="shot__pdf-item"></div>
-                <div class="shot__pdf-item"></div>
-              </div>
-              <div class="shot__pdf-page"></div>
-            </div>
-            <figcaption data-i18n="screenshots.cap2">PDF · 大纲导航</figcaption>
-          </figure>
-          <figure class="shot">
-            <div class="shot__img shot__img--code" aria-label="Code editor">
-              <div class="shot__code">
-                <div class="shot__code-line"><span class="shot__ln">1</span><span class="shot__kw">function</span> <span class="shot__fn">load</span>() {</div>
-                <div class="shot__code-line"><span class="shot__ln">2</span>  <span class="shot__kw">return</span> <span class="shot__fn">read</span>(path)</div>
-                <div class="shot__code-line"><span class="shot__ln">3</span>}</div>
-              </div>
-            </div>
-            <figcaption data-i18n="screenshots.cap3">代码 · 等宽字体</figcaption>
+            <img src="./assets/html-preview.png" />
+            <figcaption data-i18n="screenshots.cap2">HTML · 实时预览</figcaption>
           </figure>
         </div>
       </div>
