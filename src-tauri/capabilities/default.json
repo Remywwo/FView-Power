@@ -22,6 +22,7 @@
     "fs:allow-mkdir",
     "fs:allow-remove",
     "fs:allow-rename",
+    "core:asset:default",
     {
       "identifier": "fs:scope",
       "allow": [

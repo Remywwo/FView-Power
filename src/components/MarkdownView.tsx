@@ -96,7 +96,14 @@ function resolveLocalImages(html: string, fileDir?: string): string {
       ) {
         return match;
       }
-      const abs = `${fileDir.replace(/[\\/]+$/, "")}${sep}${src.replace(/^\.+\\/, "")}`;
+      const base = fileDir.replace(/[\\/]+$/, "");
+      const abs = src.startsWith("./")
+        ? `${base}${sep}${src.slice(2)}`
+        : src.startsWith("../")
+        ? `${base}${sep}${src}`
+        : src.includes("://")
+        ? src
+        : `${base}${sep}${src}`;
       const assetUrl = convertFileSrc(abs);
       return `<img${attrs} src="${assetUrl}"`;
     }
