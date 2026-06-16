@@ -74,7 +74,10 @@ md.renderer.rules.image = function (tokens: Token[], idx: number, options: Optio
     const sep = env.fileDir.includes("\\") ? "\\" : "/";
     const base = env.fileDir.replace(/[\\/]+$/, "");
     const rel = decoded.startsWith("./") ? decoded.slice(2) : decoded;
-    const abs = `${base}${sep}${rel}`;
+
+    // Percent-encode each path segment so convertFileSrc only has to
+    // handle slashes. Raw Unicode paths may fail convertFileSrc on macOS.
+    const abs = `${base.split(/[\\/]/).map(encodeURIComponent).join(sep)}${sep}${rel.split(/[\\/]/).map(encodeURIComponent).join(sep)}`;
     token.attrSet("src", convertFileSrc(abs));
   }
 
