@@ -7,7 +7,6 @@ import anchor from "markdown-it-anchor";
 import hljs from "highlight.js";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
 import { readFile } from "@tauri-apps/plugin-fs";
-import { join } from "@tauri-apps/api/path";
 
 interface Props {
   content: string;
@@ -123,8 +122,8 @@ export function MarkdownView({ content, fileDir }: Props) {
       for (const src of srcs) {
         if (cancelled) break;
         const rel = cleanupRel(src);
-        const parts = rel.split(/[\\/]/);
-        const abs = await join(fileDir, ...parts);
+        // Try direct concatenation as macOS paths are POSIX
+        const abs = fileDir + "/" + rel;
         console.log("[md-img] src:", src, "→ rel:", rel, "→ abs:", abs);
         const uri = await imageDataUri(abs);
         console.log("[md-img] uri:", uri ? `${uri.slice(0, 50)}...` : "FAILED");
