@@ -1,24 +1,17 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkFrontmatter from "remark-frontmatter";
-import rehypeHighlight from "rehype-highlight";
-import rehypeRaw from "rehype-raw";
-import rehypeSlug from "rehype-slug";
+import { MarkdownView } from "@/components/MarkdownView";
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { EditorView, keymap } from "@codemirror/view";
 import { searchKeymap } from "@codemirror/search";
-import { open } from "@tauri-apps/plugin-shell";
 import type { LoadedFile } from "@/hooks/useFileLoader";
 import { useFileLoader } from "@/hooks/useFileLoader";
 import { useSettings, getFontStack } from "@/hooks/useSettings";
 import { useI18n } from "@/hooks/useI18n";
 import { useScrollSync } from "@/hooks/useScrollSync";
 import { extractHeadings } from "@/utils/extractHeadings";
-import { rehypeSourceLine } from "@/utils/rehypeSourceLine";
 import { TocSidebar } from "@/components/TocSidebar";
 
 interface Props {
@@ -118,31 +111,7 @@ export function MarkdownPreview({ file, setContent, isDark }: Props) {
         className="h-full overflow-auto preview-scroll"
       >
         <div className="mx-auto px-12 py-10 prose dark:prose-invert" style={proseStyle}>
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkFrontmatter]}
-            rehypePlugins={[rehypeRaw, rehypeSlug, rehypeSourceLine, rehypeHighlight]}
-            components={{
-              a({ node: _node, href, ...props }) {
-                const isExternal = href && /^https?:\/\//.test(href);
-                return (
-                  <a
-                    href={href}
-                    {...props}
-                    {...(isExternal
-                      ? {
-                          onClick: (e) => {
-                            e.preventDefault();
-                            open(href!);
-                          },
-                        }
-                      : {})}
-                  />
-                );
-              },
-            }}
-          >
-            {file.content}
-          </ReactMarkdown>
+          <MarkdownView content={file.content} />
         </div>
       </div>
       <TocSidebar headings={headings} />
