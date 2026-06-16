@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import MarkdownIt from "markdown-it";
-import type { Token } from "markdown-it/index.js";
+import type { Token, Renderer, Options } from "markdown-it/index.js";
 // @ts-expect-error - no type definitions for markdown-it-task-lists
 import taskLists from "markdown-it-task-lists";
 import anchor from "markdown-it-anchor";
@@ -10,7 +10,10 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 
 interface Props {
   content: string;
-  /** Directory of the markdown file, used to resolve relative image paths */
+  fileDir?: string;
+}
+
+interface MarkdownEnv {
   fileDir?: string;
 }
 
@@ -38,13 +41,38 @@ const md = new MarkdownIt({
   .use(anchor, { permalink: false, slugify: (s: string) => s.toLowerCase().replace(/\s+/g, "-") });
 
 const defaultRender = md.renderer.render.bind(md.renderer);
-md.renderer.render = (tokens: Token[], options: object, env: object) => {
+md.renderer.render = (tokens: Token[], options: Options, env: MarkdownEnv) => {
   for (const t of tokens) {
     if (t.type.endsWith("_open") && t.tag && SOURCE_LINE_TAGS.has(t.tag) && t.map) {
       t.attrSet("data-source-line", String(t.map[0]));
     }
   }
   return defaultRender(tokens, options, env);
+};
+
+// Override image renderer to resolve local paths via convertFileSrc
+const origImage = md.renderer.rules.image!;
+md.renderer.rules.image = function (tokens: Token[], idx: number, options: Options, env: MarkdownEnv, self: Renderer): string {
+  const token = tokens[idx];
+  let src = token.attrGet("src") || "";
+
+  if (
+    !src.startsWith("http://") &&
+    !src.startsWith("https://") &&
+    !src.startsWith("data:") &&
+    !src.startsWith("asset:") &&
+    !src.startsWith("blob:") &&
+    !src.startsWith("/") &&
+    !src.startsWith("file:") &&
+    env.fileDir
+  ) {
+    const sep = env.fileDir.includes("\\") ? "\\" : "/";
+    const base = env.fileDir.replace(/[\\/]+$/, "");
+    const abs = src.startsWith("./") ? `${base}${sep}${src.slice(2)}` : `${base}${sep}${src}`;
+    token.attrSet("src", convertFileSrc(abs));
+  }
+
+  return origImage(tokens, idx, options, env, self);
 };
 
 function stripFrontmatter(s: string): string {
@@ -54,8 +82,7 @@ function stripFrontmatter(s: string): string {
 export function MarkdownView({ content, fileDir }: Props) {
   const html = useMemo(() => {
     const stripped = stripFrontmatter(content);
-    const out = md.render(stripped, { fileDir });
-    return resolveLocalImages(out, fileDir);
+    return md.render(stripped, { fileDir });
   }, [content, fileDir]);
 
   return (
@@ -72,40 +99,5 @@ export function MarkdownView({ content, fileDir }: Props) {
       }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
-  );
-}
-
-/**
- * Convert relative image src to asset:// URL so the Tauri WebView can load
- * local images. Absolute http(s) / data / asset URLs are left untouched.
- */
-function resolveLocalImages(html: string, fileDir?: string): string {
-  if (!fileDir) return html;
-  const sep = fileDir.includes("\\") ? "\\" : "/";
-  return html.replace(
-    /<img([^>]*?)\ssrc="([^"]+)"/g,
-    (match, attrs, src) => {
-      if (
-        src.startsWith("http://") ||
-        src.startsWith("https://") ||
-        src.startsWith("data:") ||
-        src.startsWith("asset:") ||
-        src.startsWith("blob:") ||
-        src.startsWith("/") ||
-        src.startsWith("file:")
-      ) {
-        return match;
-      }
-      const base = fileDir.replace(/[\\/]+$/, "");
-      const abs = src.startsWith("./")
-        ? `${base}${sep}${src.slice(2)}`
-        : src.startsWith("../")
-        ? `${base}${sep}${src}`
-        : src.includes("://")
-        ? src
-        : `${base}${sep}${src}`;
-      const assetUrl = convertFileSrc(abs);
-      return `<img${attrs} src="${assetUrl}"`;
-    }
   );
 }
