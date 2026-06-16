@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import MarkdownIt from "markdown-it";
 import type { Token, Renderer, Options } from "markdown-it/index.js";
-// @ts-expect-error
+// @ts-expect-error - no type definitions for markdown-it-task-lists
 import taskLists from "markdown-it-task-lists";
 import anchor from "markdown-it-anchor";
 import hljs from "highlight.js";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
-import { readFile } from "@tauri-apps/plugin-fs";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 interface Props {
   content: string;
@@ -22,25 +22,6 @@ const SOURCE_LINE_TAGS = new Set([
   "p", "ul", "ol", "pre", "blockquote",
   "table", "hr", "li", "details",
 ]);
-
-const MIME: Record<string, string> = {
-  png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg",
-  gif: "image/gif", svg: "image/svg+xml", webp: "image/webp",
-  bmp: "image/bmp", ico: "image/x-icon",
-};
-
-function ext(name: string) {
-  const i = name.lastIndexOf(".");
-  return i === -1 ? "" : name.slice(i + 1).toLowerCase();
-}
-
-function toAbs(fileDir: string, src: string) {
-  const sep = fileDir.includes("\\") ? "\\" : "/";
-  const base = fileDir.replace(/[\\/]+$/, "");
-  let rel = src;
-  try { rel = decodeURIComponent(src); } catch {}
-  return `${base}${sep}${rel.replace(/^\.[/\\]/, "")}`;
-}
 
 const md = new MarkdownIt({
   html: true,
@@ -69,61 +50,46 @@ md.renderer.render = (tokens: Token[], options: Options, env: MarkdownEnv) => {
   return defaultRender(tokens, options, env);
 };
 
+// Override image renderer to resolve local paths via convertFileSrc
+const origImage = md.renderer.rules.image!;
+md.renderer.rules.image = function (tokens: Token[], idx: number, options: Options, env: MarkdownEnv, self: Renderer): string {
+  const token = tokens[idx];
+  let src = token.attrGet("src") || "";
+
+  if (
+    !src.startsWith("http://") &&
+    !src.startsWith("https://") &&
+    !src.startsWith("data:") &&
+    !src.startsWith("asset:") &&
+    !src.startsWith("blob:") &&
+    !src.startsWith("/") &&
+    !src.startsWith("file:") &&
+    env.fileDir
+  ) {
+    // URL-decode in case the markdown source already uses percent-encoding
+    // (e.g. Chinese characters in file paths). Otherwise convertFileSrc
+    // encodes again, producing double-encoded garbage.
+    let decoded = src;
+    try { decoded = decodeURIComponent(src); } catch {}
+    const sep = env.fileDir.includes("\\") ? "\\" : "/";
+    const base = env.fileDir.replace(/[\\/]+$/, "");
+    const rel = decoded.startsWith("./") ? decoded.slice(2) : decoded;
+    const abs = `${base}${sep}${rel}`;
+    token.attrSet("src", convertFileSrc(abs));
+  }
+
+  return origImage(tokens, idx, options, env, self);
+};
+
 function stripFrontmatter(s: string): string {
   return s.replace(/^---\n[\s\S]*?\n---\n?/, "");
 }
 
-const LOCAL_IMG_RE = /src="((?!https?:|data:|blob:|asset:|file:|#|\/)[^"]+)"/g;
-
 export function MarkdownView({ content, fileDir }: Props) {
-  const [blobs, setBlobs] = useState<Record<string, string>>({});
-  const pending = useRef<Set<string>>(new Set());
-
-  const stripped = useMemo(() => stripFrontmatter(content), [content]);
-  const rawHtml = useMemo(() => md.render(stripped, { fileDir }), [stripped, fileDir]);
-
-  // Load local images as blobs
-  useEffect(() => {
-    if (!fileDir) return;
-    LOCAL_IMG_RE.lastIndex = 0;
-    const srcs: string[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = LOCAL_IMG_RE.exec(rawHtml)) !== null) {
-      const src = m[1];
-      if (!pending.current.has(src)) {
-        pending.current.add(src);
-        srcs.push(src);
-      }
-    }
-    if (srcs.length === 0) return;
-
-    let cancelled = false;
-    (async () => {
-      const map: Record<string, string> = {};
-      for (const src of srcs) {
-        if (cancelled) return;
-        const abs = toAbs(fileDir, src);
-        try {
-          const bytes = await readFile(abs);
-          const mime = MIME[ext(abs)] || "image/png";
-          const blob = new Blob([bytes], { type: mime });
-          map[src] = URL.createObjectURL(blob);
-        } catch { /* file doesn't exist or unreadable */ }
-      }
-      if (!cancelled) setBlobs((prev) => ({ ...prev, ...map }));
-    })();
-    return () => { cancelled = true; };
-  }, [rawHtml, fileDir]);
-
-  // Substitute blob URLs for local images
   const html = useMemo(() => {
-    if (Object.keys(blobs).length === 0) return rawHtml;
-    LOCAL_IMG_RE.lastIndex = 0;
-    return rawHtml.replace(LOCAL_IMG_RE, (match, src) => {
-      const blob = blobs[src];
-      return blob ? `src="${blob}"` : match;
-    });
-  }, [rawHtml, blobs]);
+    const stripped = stripFrontmatter(content);
+    return md.render(stripped, { fileDir });
+  }, [content, fileDir]);
 
   return (
     <div
