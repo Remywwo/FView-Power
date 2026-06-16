@@ -123,7 +123,8 @@ export function MarkdownView({ content, fileDir }: Props) {
       for (const src of srcs) {
         if (cancelled) break;
         const rel = cleanupRel(src);
-        const abs = await join(fileDir, rel);
+        const parts = rel.split(/[\\/]/);
+        const abs = await join(fileDir, ...parts);
         console.log("[md-img] src:", src, "→ rel:", rel, "→ abs:", abs);
         const uri = await imageDataUri(abs);
         console.log("[md-img] uri:", uri ? `${uri.slice(0, 50)}...` : "FAILED");
