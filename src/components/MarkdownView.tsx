@@ -66,9 +66,15 @@ md.renderer.rules.image = function (tokens: Token[], idx: number, options: Optio
     !src.startsWith("file:") &&
     env.fileDir
   ) {
+    // URL-decode in case the markdown source already uses percent-encoding
+    // (e.g. Chinese characters in file paths). Otherwise convertFileSrc
+    // encodes again, producing double-encoded garbage.
+    let decoded = src;
+    try { decoded = decodeURIComponent(src); } catch {}
     const sep = env.fileDir.includes("\\") ? "\\" : "/";
     const base = env.fileDir.replace(/[\\/]+$/, "");
-    const abs = src.startsWith("./") ? `${base}${sep}${src.slice(2)}` : `${base}${sep}${src}`;
+    const rel = decoded.startsWith("./") ? decoded.slice(2) : decoded;
+    const abs = `${base}${sep}${rel}`;
     token.attrSet("src", convertFileSrc(abs));
   }
 
