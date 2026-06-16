@@ -73,7 +73,7 @@ function stripFrontmatter(s: string): string {
   return s.replace(/^---\n[\s\S]*?\n---\n?/, "");
 }
 
-const LOCAL_IMG_RE = /<img([^>]*?) src="((?!https?:|data:|blob:|asset:|file:|\/)[^"]+)"([^>]*)>/g;
+const LOCAL_IMG_RE = /src="((?!https?:|data:|blob:|asset:|file:|#|\/)[^"]+)"/g;
 
 export function MarkdownView({ content, fileDir }: Props) {
   const [blobs, setBlobs] = useState<Record<string, string>>({});
@@ -89,7 +89,7 @@ export function MarkdownView({ content, fileDir }: Props) {
     const srcs: string[] = [];
     let m: RegExpExecArray | null;
     while ((m = LOCAL_IMG_RE.exec(rawHtml)) !== null) {
-      const src = m[2];
+      const src = m[1];
       if (!pending.current.has(src)) {
         pending.current.add(src);
         srcs.push(src);
@@ -119,9 +119,9 @@ export function MarkdownView({ content, fileDir }: Props) {
   const html = useMemo(() => {
     if (Object.keys(blobs).length === 0) return rawHtml;
     LOCAL_IMG_RE.lastIndex = 0;
-    return rawHtml.replace(LOCAL_IMG_RE, (match, before, src, after) => {
+    return rawHtml.replace(LOCAL_IMG_RE, (match, src) => {
       const blob = blobs[src];
-      return blob ? `<img${before} src="${blob}"${after}>` : match;
+      return blob ? `src="${blob}"` : match;
     });
   }, [rawHtml, blobs]);
 
