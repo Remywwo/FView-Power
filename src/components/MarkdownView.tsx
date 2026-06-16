@@ -74,13 +74,21 @@ function stripFrontmatter(s: string): string {
 
 const LOCAL_IMG_RE = /src="((?!https?:|data:|blob:|asset:|file:|#|\/)[^"]+)"/g;
 
+function bytesToBase64(bytes: Uint8Array): string {
+  const CHUNK = 0x8000;
+  const parts: string[] = [];
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    parts.push(String.fromCharCode(...bytes.subarray(i, i + CHUNK)));
+  }
+  return btoa(parts.join(""));
+}
+
 /** Read image bytes and return a data: URI */
 async function imageDataUri(absPath: string): Promise<string | null> {
   try {
     const bytes = await readFile(absPath);
     const mime = MIME[ext(absPath)] || "image/png";
-    const base64 = btoa(String.fromCharCode(...bytes));
-    return `data:${mime};base64,${base64}`;
+    return `data:${mime};base64,${bytesToBase64(bytes)}`;
   } catch {
     return null;
   }
