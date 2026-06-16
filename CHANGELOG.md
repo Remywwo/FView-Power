@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Markdown editor migrated to ByteMD** — split-view editor with 7 plugins (GFM, highlight, frontmatter, gemoji, KaTeX math, medium-zoom, Mermaid)
+- Removed CodeMirror + markdown-it + useScrollSync in favor of ByteMD's built-in rendering and scroll sync
+- Removed MarkdownView, TocSidebar, extractHeadings components
+- Removed split mode toggle; replaced with Split / Write / Preview view modes
+- Toolbar font size unified to 14px, height to 48px, aligned with folder sidebar
+- Folder sidebar width adjusted to 283px, header height 48px
+- File path right-aligned in toolbar; divider between Close and file path removed
+
+### Added
+- **33 markdown CSS themes** — 32 from juejin-markdown-themes + default (github-markdown-css light)
+- Custom theme selector dropdown with FView styling
+- Font size synced from Settings to ByteMD editor and preview
+- External links in preview open via system browser (`@tauri-apps/plugin-shell.open`)
+- i18n keys: `md.split`, `md.write`, `md.theme` (en/zh)
+- `public/themes/` — static theme CSS assets
+
+### Removed
+- `markdown-it`, `markdown-it-task-lists`, `markdown-it-anchor`, `unified`, `remark-parse`, `unist-util-visit`, `github-slugger` dependencies
+- `MarkdownView.tsx`, `TocSidebar.tsx`, `extractHeadings.ts`, `useScrollSync.ts`
+
 ## [0.1.2] - 2026-06-15
 
 ### Added
