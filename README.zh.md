@@ -92,3 +92,24 @@ npm run tauri:dev
 ```bash
 npm run tauri:build
 ```
+
+## 清理构建缓存
+
+Rust / Tauri 的构建产物会膨胀到几 GB。在以下情况清理：
+
+- 构建报错提示产物损坏
+- 磁盘空间不足
+- 切换 Rust 工具链或 Tauri 版本
+
+```bash
+# 项目级产物（可安全删除，下次会重新构建）
+rm -rf src-tauri/target dist node_modules/.tauri
+
+# Cargo 全局依赖缓存（重新下载较慢，一般保留）
+cargo clean
+
+# npm 缓存
+npm cache clean --force
+```
+
+典型节省空间：`src-tauri/target` 在一次 debug build 后约 **2.5 GB**。

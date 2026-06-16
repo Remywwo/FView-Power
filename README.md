@@ -92,3 +92,24 @@ npm run tauri:dev
 ```bash
 npm run tauri:build
 ```
+
+## Cleaning Build Cache
+
+Rust / Tauri build output can grow to several GB. Clean it when:
+
+- Build errors mention stale or corrupted artifacts
+- Disk space is running low
+- Switching Rust toolchain or Tauri version
+
+```bash
+# Project-level artifacts (safe to delete — will rebuild)
+rm -rf src-tauri/target dist node_modules/.tauri
+
+# Cargo global dependency cache (slower to rebuild — usually keep)
+cargo clean
+
+# npm cache
+npm cache clean --force
+```
+
+Typical savings: `src-tauri/target` is **~2.5 GB** after a debug build.
