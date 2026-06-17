@@ -53,6 +53,37 @@ export function WysiwygToc({ container, hidden }: { container: HTMLElement | nul
 
   return (
     <>
+      {/* always-visible floating tab on right edge */}
+      <div
+        onClick={() => { open ? setOpen(false) : show(); }}
+        title={open ? "Close TOC" : "Table of Contents"}
+        style={{
+          position: "absolute", top: "50%", right: 0, transform: "translateY(-50%)",
+          writingMode: "vertical-rl", textOrientation: "mixed",
+          padding: "10px 6px", cursor: "pointer", zIndex: 9,
+          background: "var(--md-code-bg)", color: "var(--md-muted)",
+          border: "1px solid var(--md-border)", borderRight: "none",
+          borderRadius: "6px 0 0 6px", fontSize: 11, fontWeight: 500,
+          letterSpacing: "0.05em", userSelect: "none",
+          opacity: 0.6, transition: "opacity 0.15s, color 0.15s, background 0.15s",
+        }}
+        onMouseEnter={(e) => {
+          if (!open) {
+            (e.target as HTMLElement).style.opacity = "1";
+            (e.target as HTMLElement).style.color = "var(--md-link)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!open) {
+            (e.target as HTMLElement).style.opacity = "0.6";
+            (e.target as HTMLElement).style.color = "var(--md-muted)";
+          }
+        }}
+      >
+        {open ? "×" : "TOC"}
+      </div>
+
+      {/* hover handle */}
       <div
         className={`toc-handle${open ? " open" : ""}`}
         style={{ position: "absolute", top: 0, right: 0, height: "100%", width: 18, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--md-muted)", cursor: "pointer", background: "transparent", borderLeft: "1px solid transparent", opacity: 0, transition: "opacity 0.15s", zIndex: 9 }}
