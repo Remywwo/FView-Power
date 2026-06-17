@@ -4,35 +4,48 @@ interface Heading {
   depth: number;
   text: string;
   id: string;
-  el: HTMLElement;
 }
 
-export function WysiwygToc({ container }: { container: HTMLElement | null }) {
+export function WysiwygToc({ container, markdown }: { container: HTMLElement | null; markdown: string }) {
   const [headings, setHeadings] = useState<Heading[]>([]);
   const [open, setOpen] = useState(false);
   const hideTimer = useRef<number | null>(null);
 
-  // Parse headings from preview DOM
+  // Scan headings from DOM (works in preview/split); fall back to markdown parsing (write mode)
   useEffect(() => {
     if (!container) return;
     const scan = () => {
-      const hs = container.querySelectorAll<HTMLElement>(
-        ".markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6"
-      );
-      setHeadings(
-        Array.from(hs).map((el) => ({
-          depth: parseInt(el.tagName[1]),
-          text: el.textContent || "",
-          id: el.id,
-          el,
-        }))
-      );
+      // Try full-container scan (works for both preview and hidden-by-display-none elements)
+      const hs = container.querySelectorAll<HTMLElement>("h1, h2, h3, h4, h5, h6");
+      if (hs.length > 0) {
+        setHeadings(
+          Array.from(hs).map((el) => ({
+            depth: parseInt(el.tagName[1]),
+            text: el.textContent || "",
+            id: el.id,
+          }))
+        );
+      } else {
+        // Fallback: parse from markdown source
+        const re = /^(#{1,6})\s+(.+)$/gm;
+        const result: Heading[] = [];
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(markdown)) !== null) {
+          const text = m[2].trim();
+          result.push({
+            depth: m[1].length,
+            text,
+            id: text.toLowerCase().replace(/\s+/g, "-"),
+          });
+        }
+        setHeadings(result);
+      }
     };
     scan();
     const obs = new MutationObserver(scan);
     obs.observe(container, { childList: true, subtree: true });
     return () => obs.disconnect();
-  }, [container]);
+  }, [container, markdown]);
 
   const show = () => {
     if (hideTimer.current !== null) { clearTimeout(hideTimer.current); hideTimer.current = null; }
@@ -43,18 +56,18 @@ export function WysiwygToc({ container }: { container: HTMLElement | null }) {
     hideTimer.current = window.setTimeout(() => setOpen(false), 300);
   };
 
-  const scrollTo = (el: HTMLElement) => {
-    const scrollParent = container?.querySelector(".bytemd-preview");
-    if (!scrollParent) return;
-    const offset = el.getBoundingClientRect().top - scrollParent.getBoundingClientRect().top;
-    scrollParent.scrollBy({ top: offset - 16, behavior: "smooth" });
+  const scrollTo = (id: string) => {
+    if (!container) return;
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   if (headings.length === 0) return null;
 
   return (
     <>
-      {/* hover handle */}
       <div
         className={`toc-handle${open ? " open" : ""}`}
         style={{ position: "absolute", top: 0, right: 0, height: "100%", width: 18, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--md-muted)", cursor: "pointer", background: "transparent", borderLeft: "1px solid transparent", opacity: 0, transition: "opacity 0.15s", zIndex: 9 }}
@@ -68,7 +81,6 @@ export function WysiwygToc({ container }: { container: HTMLElement | null }) {
         </svg>
       </div>
 
-      {/* floating drawer */}
       <aside
         className={`toc-drawer${open ? " open" : ""}`}
         onMouseEnter={show}
@@ -81,7 +93,7 @@ export function WysiwygToc({ container }: { container: HTMLElement | null }) {
             {headings.map((h) => (
               <li key={h.id || h.text} style={{ margin: 0 }}>
                 <button
-                  onClick={() => { scrollTo(h.el); }}
+                  onClick={() => scrollTo(h.id)}
                   style={{
                     display: "block", width: "100%", textAlign: "left",
                     padding: "0.3rem 0.5rem", paddingLeft: `${0.5 + (h.depth - 1) * 0.85}rem`,
