@@ -291,6 +291,14 @@ html, body, #root {
 .bytemd .CodeMirror-activeline-background { background: var(--md-code-bg) !important; }
 .bytemd-editor .CodeMirror pre.CodeMirror-placeholder { color: var(--md-muted) !important; }
 
+/* Prevent blank flicker when scrolling CodeMirror 5 (Tauri webview) */
+.bytemd .CodeMirror-scroll {
+  transform: translateZ(0);
+}
+.bytemd .CodeMirror-lines {
+  transform: translateZ(0);
+}
+
 /* Dark mode — outer container */
 .dark .bytemd {
   background-color: var(--md-bg);

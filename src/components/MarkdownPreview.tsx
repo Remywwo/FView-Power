@@ -182,6 +182,22 @@ export function MarkdownPreview({ file, setContent }: Props) {
     return () => observer.disconnect();
   }, []);
 
+  // ── Increase CodeMirror viewport margin (fix blank flicker) ──────────
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new MutationObserver(() => {
+      const cm = (el.querySelector(".CodeMirror") as any)?.CodeMirror;
+      if (cm && cm.defaults && cm.defaults.viewportMargin < 500) {
+        cm.defaults.viewportMargin = 500;
+        observer.disconnect();
+      }
+    });
+    observer.observe(el, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
   // ── Open preview links in default browser ────────────────────────────
 
   useEffect(() => {
