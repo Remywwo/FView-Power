@@ -10,7 +10,7 @@ import mermaid from "@bytemd/plugin-mermaid";
 import "bytemd/dist/index.css";
 import "katex/dist/katex.min.css";
 import type { LoadedFile } from "@/hooks/useFileLoader";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings, getFontStack } from "@/hooks/useSettings";
 import { useI18n } from "@/hooks/useI18n";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
 import { WysiwygToc } from "@/components/WysiwygToc";
@@ -221,18 +221,19 @@ export function MarkdownPreview({ file, setContent }: Props) {
     const id = "md-font-style";
     const existing = document.getElementById(id);
     if (existing) existing.remove();
+    const fontFamily = getFontStack(settings.fontFamily) || settings.fontFamily;
     const style = document.createElement("style");
     style.id = id;
     style.textContent = `
-      .bytemd .markdown-body { font-size: ${settings.fontSize}px; }
-      .bytemd .CodeMirror { font-size: ${settings.fontSize}px; }
+      .bytemd .CodeMirror,
+      .bytemd .markdown-body { font-size: ${settings.fontSize}px; font-family: ${fontFamily}; line-height: ${settings.lineHeight}; }
     `;
     document.head.appendChild(style);
     return () => {
       const el = document.getElementById(id);
       if (el) el.remove();
     };
-  }, [settings.fontSize]);
+  }, [settings.fontSize, settings.fontFamily, settings.lineHeight]);
 
   // View mode → CSS class on container
   useEffect(() => {
