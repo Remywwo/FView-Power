@@ -230,6 +230,11 @@ html, body, #root {
 .bytemd-dropdown-item:hover {
   background-color: var(--md-code-bg) !important;
 }
+/* Override tippy tooltip white background */
+.tippy-box[data-theme~=light-border] {
+  background-color: var(--md-bg) !important;
+  color: var(--md-fg) !important;
+}
 
 /* ByteMD status bar */
 .bytemd-status {
