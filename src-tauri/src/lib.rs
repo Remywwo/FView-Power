@@ -193,7 +193,6 @@ fn start_html_server(html_path: String, initial_content: String) -> Result<u16, 
     let server = Server::http("127.0.0.1:0").map_err(|e| e.to_string())?;
     let port = match server.server_addr() {
         tiny_http::ListenAddr::IP(addr) => addr.port(),
-        _ => return Err("Could not determine bound port".to_string()),
     };
 
     let content = Arc::new(Mutex::new(initial_content));
