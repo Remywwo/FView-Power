@@ -268,6 +268,7 @@ export function MarkdownPreview({ file, setContent }: Props) {
         <Editor
           value={file.content}
           plugins={plugins}
+          editorConfig={{ lineNumbers: true }}
           onChange={(v) => setContent(v)}
         />
         <WysiwygToc container={tocContainer} hidden={viewMode === "write"} />

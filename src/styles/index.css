@@ -281,11 +281,11 @@ html, body, #root {
   background: var(--md-bg) !important;
   color: var(--md-fg) !important;
 }
+.bytemd .CodeMirror-linenumber { color: var(--md-muted) !important; }
 .bytemd .CodeMirror-gutters {
-  background: var(--md-bg) !important;
+  background: var(--md-code-bg) !important;
   border-color: var(--md-border) !important;
 }
-.bytemd .CodeMirror-linenumber { color: var(--md-muted) !important; }
 .bytemd .CodeMirror-cursor { border-color: var(--md-fg) !important; }
 .bytemd .CodeMirror-selected { background: #264f78 !important; }
 .bytemd .CodeMirror-activeline-background { background: var(--md-code-bg) !important; }
