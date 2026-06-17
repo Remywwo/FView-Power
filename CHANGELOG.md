@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-06-17
+
+### Added
+- Custom floating TOC sidebar (WysiwygToc) with right-edge three-line toggle button
+- ByteMD toolbar & status bar full Chinese locale (48 core keys + 21 plugin keys: GFM, math, mermaid)
+- Font-family and line-height synced from Settings to ByteMD editor and preview
+- Release CI now auto-generates release notes from CHANGELOG.md
+
+### Changed
+- PDF outline English title changed from "Outline" to "Table of contents"
+
+### Fixed
+- CodeMirror blank flicker during scroll (GPU acceleration + viewport margin fix)
+- Dropdown/tooltip white background override for dark mode
+- Dropdown scrollbar overflow on nested menus
+
+### Removed
+- Line numbers from markdown editor (added then removed in v0.1.5 cycle)
+
 ## [0.1.4] - 2026-06-17
 
 ### Changed
@@ -21,13 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **33 markdown CSS themes** — 32 from juejin-markdown-themes + default (github-markdown-css light)
 - Custom theme selector dropdown with FView styling
-- Font-family, font-size, line-height synced from Settings to ByteMD editor and preview
+- Font size synced from Settings to ByteMD editor and preview
 - External links in preview open via system browser
-- Custom floating TOC sidebar (WysiwygToc) with right-edge hover handle + visible toggle
-- ByteMD toolbar & status bar Chinese locale (48 keys + 21 plugin keys)
-- Line numbers in editor (later removed)
-- CodeMirror viewport margin fix for blank flicker during scroll
-- GPU-accelerated CodeMirror rendering
 - i18n keys: `md.split`, `md.write`, `md.theme`, `md.toc`
 - `public/themes/` — static theme CSS assets
 
