@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Editor } from "@bytemd/react";
 import gfm from "@bytemd/plugin-gfm";
 import highlight from "@bytemd/plugin-highlight";
@@ -14,6 +14,56 @@ import { useSettings, getFontStack } from "@/hooks/useSettings";
 import { useI18n } from "@/hooks/useI18n";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
 import { WysiwygToc } from "@/components/WysiwygToc";
+
+const zhLocale = {
+  bold: "粗体",
+  boldText: "粗体文本",
+  cheatsheet: "Markdown 速查表",
+  closeHelp: "关闭帮助",
+  closeToc: "关闭目录",
+  code: "代码",
+  codeBlock: "代码块",
+  codeLang: "语言",
+  codeText: "代码",
+  exitFullscreen: "退出全屏",
+  exitPreviewOnly: "退出仅预览",
+  exitWriteOnly: "退出仅编辑",
+  fullscreen: "全屏",
+  h1: "标题 1",
+  h2: "标题 2",
+  h3: "标题 3",
+  h4: "标题 4",
+  h5: "标题 5",
+  h6: "标题 6",
+  headingText: "标题",
+  help: "帮助",
+  hr: "分割线",
+  image: "图片",
+  imageAlt: "替代文本",
+  imageTitle: "标题",
+  italic: "斜体",
+  italicText: "斜体文本",
+  limited: "已达到最大字符限制",
+  lines: "行",
+  link: "链接",
+  linkText: "链接文本",
+  ol: "有序列表",
+  olItem: "项目",
+  preview: "预览",
+  previewOnly: "仅预览",
+  quote: "引用",
+  quotedText: "引用文本",
+  shortcuts: "快捷键",
+  source: "源码",
+  sync: "滚动同步",
+  toc: "目录",
+  top: "回到顶部",
+  ul: "无序列表",
+  ulItem: "项目",
+  words: "字",
+  write: "编辑",
+  writeOnly: "仅编辑",
+};
 
 interface Props {
   file: LoadedFile;
@@ -148,11 +198,14 @@ type ViewMode = "split" | "write" | "preview";
 
 export function MarkdownPreview({ file, setContent }: Props) {
   const { settings } = useSettings();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [theme, setTheme] = useState(() => localStorage.getItem(STORAGE_KEY) || "default");
   const [viewMode, setViewMode] = useState<ViewMode>("split");
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocContainer, setTocContainer] = useState<HTMLElement | null>(null);
+
+  const editorConfig = useMemo(() => ({ lineNumbers: true }), []);
+  const locale = useMemo(() => (lang === "zh" ? zhLocale : undefined), [lang]);
 
   const MODES: { key: ViewMode; label: string }[] = [
     { key: "split", label: t("md.split") },
@@ -272,7 +325,8 @@ export function MarkdownPreview({ file, setContent }: Props) {
         <Editor
           value={file.content}
           plugins={plugins}
-          editorConfig={{ lineNumbers: true }}
+          editorConfig={editorConfig}
+          locale={locale}
           onChange={(v) => setContent(v)}
         />
         <WysiwygToc container={tocContainer} hidden={viewMode === "write"} />
