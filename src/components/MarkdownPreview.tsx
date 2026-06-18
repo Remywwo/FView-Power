@@ -199,16 +199,16 @@ export function MarkdownPreview({ file, setContent }: Props) {
         set(html: string) {
           if (typeof html !== "string") { proto.set!.call(this, html); return; }
           const result = html.replace(
-            /(<img\s[^>]*src\s*=\s*")([^"]+)(")/gi,
+            /(<img\b[^>]*\bsrc\s*=\s*)"([^"]+)"([^>]*>)/gi,
             (_m: string, pre: string, src: string, post: string) => {
               if (src.startsWith("http") || src.startsWith("data:") || src.startsWith("asset:") || src.startsWith("/")) {
-                return pre + src + post;
+                return _m;
               }
               let rel = src;
-              try { rel = decodeURIComponent(rel); } catch { /* keep encoded */ }
+              try { rel = decodeURIComponent(rel); } catch {}
               rel = rel.replace(/^\.[/\\]/, "");
               const abs = rel.split(/[\\/]/).reduce((acc, s) => acc + "/" + s, fileDir);
-              return pre + convertFileSrc(abs) + post;
+              return pre + `"${convertFileSrc(abs)}"` + post;
             }
           );
           proto.set!.call(this, result);
