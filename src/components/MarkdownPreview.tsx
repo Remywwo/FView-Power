@@ -13,23 +13,8 @@ import type { LoadedFile } from "@/hooks/useFileLoader";
 import { useSettings, getFontStack } from "@/hooks/useSettings";
 import { useI18n } from "@/hooks/useI18n";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
-import { readFile } from "@tauri-apps/plugin-fs";
-import { join } from "@tauri-apps/api/path";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { WysiwygToc } from "@/components/WysiwygToc";
-
-const MIME: Record<string, string> = {
-  png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg",
-  gif: "image/gif", svg: "image/svg+xml", webp: "image/webp",
-  bmp: "image/bmp", ico: "image/x-icon",
-};
-
-function bytesToBase64(bytes: Uint8Array): string {
-  const CHUNK = 0x8000;
-  const parts: string[] = [];
-  for (let i = 0; i < bytes.length; i += CHUNK)
-    parts.push(String.fromCharCode(...bytes.subarray(i, i + CHUNK)));
-  return btoa(parts.join(""));
-}
 
 const zhLocale = {
   bold: "粗体", boldText: "粗体文本",
@@ -200,40 +185,49 @@ export function MarkdownPreview({ file, setContent }: Props) {
     gfm(), highlight(), frontmatter(), gemoji(), math(), mediumZoom(), mermaid(),
   ], []);
 
-  // ── Local image loading via asset:// protocol ───────────────────────
-
-  const loadedSrcs = useRef(new Set<string>());
+  // ── Local image: intercept innerHTML before browser loads images ───
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el || !fileDir) return;
 
-    const process = (img: HTMLImageElement) => {
-      const raw = img.getAttribute("src") || "";
-      if (!raw || raw.startsWith("http") || raw.startsWith("data:") || raw.startsWith("asset:") || raw.startsWith("blob:")) return;
-      if (loadedSrcs.current.has(raw)) return;
-      loadedSrcs.current.add(raw);
+    const proto = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHTML");
+    if (!proto?.set) return;
 
-      let rel = raw;
-      try { rel = decodeURIComponent(rel); } catch {}
-      rel = rel.replace(/^\.[/\\]/, "");
-      const segments = rel.split(/[\\/]/);
-
-      join(fileDir, ...segments).then((abs) =>
-        readFile(abs).then((bytes) => {
-          const ext = abs.slice(abs.lastIndexOf(".") + 1).toLowerCase();
-          const mime = MIME[ext] || "image/png";
-          img.src = `data:${mime};base64,${bytesToBase64(bytes)}`;
-        }).catch(() => {})
-      ).catch(() => {});
+    const patch = (body: HTMLElement) => {
+      Object.defineProperty(body, "innerHTML", {
+        set(html: string) {
+          if (typeof html !== "string") { proto.set!.call(this, html); return; }
+          const result = html.replace(
+            /(<img\s[^>]*src\s*=\s*")([^"]+)(")/gi,
+            (_m: string, pre: string, src: string, post: string) => {
+              if (src.startsWith("http") || src.startsWith("data:") || src.startsWith("asset:") || src.startsWith("/")) {
+                return pre + src + post;
+              }
+              let rel = src;
+              try { rel = decodeURIComponent(rel); } catch { /* keep encoded */ }
+              rel = rel.replace(/^\.[/\\]/, "");
+              const abs = rel.split(/[\\/]/).reduce((acc, s) => acc + "/" + s, fileDir);
+              return pre + convertFileSrc(abs) + post;
+            }
+          );
+          proto.set!.call(this, result);
+        },
+        get() { return proto.get!.call(this); },
+        configurable: true,
+      });
     };
 
     const scan = () => {
-      el.querySelectorAll<HTMLImageElement>("img[src]").forEach(process);
+      const body = el.querySelector<HTMLElement>(".markdown-body");
+      if (body) { patch(body); return true; }
+      return false;
     };
 
-    scan();
-    const obs = new MutationObserver(() => scan());
+    if (scan()) return;
+    const obs = new MutationObserver((_m, o) => {
+      if (scan()) o.disconnect();
+    });
     obs.observe(el, { childList: true, subtree: true });
     return () => obs.disconnect();
   }, [fileDir]);
