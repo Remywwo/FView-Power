@@ -211,6 +211,22 @@ export function MarkdownPreview({ file, setContent }: Props) {
     { key: "write", label: t("md.write") },
     { key: "preview", label: t("md.preview") },
   ];
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    // ByteMD's CodeMirror may need a refresh after first layout settles.
+    const t1 = setTimeout(() => {
+      const cm = (el.querySelector(".CodeMirror") as any)?.CodeMirror;
+      cm?.refresh();
+    }, 100);
+    const t2 = setTimeout(() => {
+      const cm = (el.querySelector(".CodeMirror") as any)?.CodeMirror;
+      cm?.refresh();
+    }, 500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [fileDir]);
+
   // Load theme CSS
   useEffect(() => {
     loadTheme(theme);
