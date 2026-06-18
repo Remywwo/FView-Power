@@ -209,8 +209,8 @@ export function MarkdownPreview({ file, setContent }: Props) {
   ], [localImagePlugin]);
 
   const MODES: { key: ViewMode; label: string }[] = [
-    { key: "write", label: t("md.write") },
     { key: "preview", label: t("md.preview") },
+    { key: "write", label: t("md.write") },
     { key: "split", label: t("md.split") },
   ];
   useEffect(() => {
@@ -229,6 +229,17 @@ export function MarkdownPreview({ file, setContent }: Props) {
       window.removeEventListener("resize", refresh);
     };
   }, [fileDir]);
+
+  useEffect(() => {
+    if (viewMode !== "write" && viewMode !== "split") return;
+    const el = containerRef.current;
+    if (!el) return;
+    // CodeMirror may be invisible during mode switch — refresh after layout
+    setTimeout(() => {
+      const cm = (el.querySelector(".CodeMirror") as any)?.CodeMirror;
+      cm?.refresh();
+    }, 50);
+  }, [viewMode]);
 
   // Load theme CSS
   useEffect(() => {
