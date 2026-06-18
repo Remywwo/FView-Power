@@ -207,7 +207,8 @@ export function MarkdownPreview({ file, setContent }: Props) {
               let rel = src;
               try { rel = decodeURIComponent(rel); } catch {}
               rel = rel.replace(/^\.[/\\]/, "");
-              const abs = rel.split(/[\\/]/).reduce((acc, s) => acc + "/" + s, fileDir);
+              const sep = fileDir.includes("\\") ? "\\" : "/";
+              const abs = rel.split(/[\\/]/).reduce((acc, s) => acc + sep + s, fileDir);
               return pre + `"${convertFileSrc(abs)}"` + post;
             }
           );
