@@ -175,7 +175,7 @@ export function MarkdownPreview({ file, setContent }: Props) {
   const { settings } = useSettings();
   const { t, lang } = useI18n();
   const [theme, setTheme] = useState(() => localStorage.getItem(STORAGE_KEY) || "default");
-  const [viewMode, setViewMode] = useState<ViewMode>("split");
+  const [viewMode, setViewMode] = useState<ViewMode>("preview");
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocContainer, setTocContainer] = useState<HTMLElement | null>(null);
 
@@ -209,9 +209,9 @@ export function MarkdownPreview({ file, setContent }: Props) {
   ], [localImagePlugin]);
 
   const MODES: { key: ViewMode; label: string }[] = [
-    { key: "split", label: t("md.split") },
     { key: "write", label: t("md.write") },
     { key: "preview", label: t("md.preview") },
+    { key: "split", label: t("md.split") },
   ];
   useEffect(() => {
     const el = containerRef.current;
