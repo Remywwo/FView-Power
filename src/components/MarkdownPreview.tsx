@@ -256,22 +256,15 @@ export function MarkdownPreview({ file, setContent }: Props) {
         activeLineRef.current.off("cursorActivity");
       }
       activeLineRef.current = cm;
-      // Highlight the current line on cursor activity
-      cm.on("cursorActivity", () => {
+      // Highlight current line on cursor activity
+      const mark = () => {
         const cur = cm.getCursor();
-        cm.removeLineClass(activeLineRef.current?._activeLine, "background", "activeline");
-        const line = cm.addLineClass(cur.line, "background", "activeline");
-        activeLineRef.current._activeLine = line;
-      });
-      // Fire once on init
-      cm.off("cursorActivity");
-      const cur = cm.getCursor();
-      activeLineRef.current._activeLine = cm.addLineClass(cur.line, "background", "activeline");
-      cm.on("cursorActivity", () => {
-        const c = cm.getCursor();
-        cm.removeLineClass(activeLineRef.current._activeLine, "background", "activeline");
-        activeLineRef.current._activeLine = cm.addLineClass(c.line, "background", "activeline");
-      });
+        if (activeLineRef.current._activeLine)
+          cm.removeLineClass(activeLineRef.current._activeLine, "background", "activeline");
+        activeLineRef.current._activeLine = cm.addLineClass(cur.line, "background", "activeline");
+      };
+      cm.on("cursorActivity", mark);
+      mark();
     });
     observer.observe(el, { childList: true, subtree: true });
     return () => observer.disconnect();
