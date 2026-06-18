@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-17
+
+### Added
+- Local image loading in ByteMD preview (rehype plugin + Tauri `convertFileSrc`)
+- Active line highlighting (manual via CodeMirror `addLineClass`)
+- **10 font styles** in Settings: System UI, Humanist, Georgia, Menlo, Newspaper, Rounded added
+- Floating TOC toggle button (three-line icon on right edge)
+
+### Changed
+- **Default mode**: Preview (was Split); button order: Preview / Write / Split
+- **Typora-style centered editing**: content max-width 860px, window bg vs content bg, transparent toolbar
+- Selection color lightened (was dark blue, now code-bg)
+- Toolbar background transparent (window bg shows through)
+- Folder sidebar header height 48px, font-size 14px
+
+### Fixed
+- Windows build (Rust `unreachable-patterns` + `tauriScript: npx`)
+- macOS/Linux build (Rust `#[allow(unreachable_patterns)]` on Port match)
+- Dropdown scrollbar overflow, white background overrides
+- TOC hidden in Write mode
+- CodeMirror refresh on mode switch (fix blank editor)
+- CodeMirror refresh on mount/resize (fix cursor offset)
+
+## [0.2.0] - 2026-06-17
+
+### Release Notes
+- All four platform builds pass: macOS (x64 + aarch64), Windows, Linux
+- CI auto-generates release notes from CHANGELOG
+
 ## [0.1.5] - 2026-06-17
 
 ### Added
