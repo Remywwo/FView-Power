@@ -149,12 +149,6 @@ html, body, #root {
   padding: 40px 4% 80px;
 }
 
-/* CodeMirror line padding */
-.bytemd-editor .CodeMirror pre.CodeMirror-line,
-.bytemd-editor .CodeMirror pre.CodeMirror-line-like {
-  padding: 0 4%;
-}
-
 /* MarkdownPreview mode buttons */
 .md-mode-btn {
   background: transparent;
@@ -324,14 +318,11 @@ html, body, #root {
   background: var(--md-code-bg) !important;
 }
 /* Line numbers */
-.bytemd .CodeMirror-linenumber { color: var(--md-muted) !important; }
-.bytemd .CodeMirror-gutters {
-  background: var(--md-code-bg) !important;
-  border-color: var(--md-border) !important;
-}
+/* Active line highlight */
+.bytemd .CodeMirror .activeline { background: var(--md-code-bg) !important; }
+.bytemd .CodeMirror-cursor { border-color: var(--md-fg) !important; }
 .bytemd .CodeMirror-selected { background: var(--md-code-bg) !important; }
 .bytemd .CodeMirror-focused .CodeMirror-selected { background: var(--md-border) !important; }
-.bytemd .CodeMirror-activeline-background { background: var(--md-code-bg) !important; }
 .bytemd-editor .CodeMirror pre.CodeMirror-placeholder { color: var(--md-muted) !important; }
 
 /* Prevent blank flicker when scrolling CodeMirror 5 (Tauri webview) */

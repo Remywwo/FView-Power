@@ -179,7 +179,7 @@ export function MarkdownPreview({ file, setContent }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocContainer, setTocContainer] = useState<HTMLElement | null>(null);
 
-  const editorConfig = useMemo(() => ({ lineNumbers: true }), []);
+  const editorConfig = useMemo(() => ({}), []);
   const locale = useMemo(() => (lang === "zh" ? zhLocale : undefined), [lang]);
   const fileDir = useMemo(() => file.path.replace(/[\\/][^\\/]*$/, ""), [file.path]);
 
