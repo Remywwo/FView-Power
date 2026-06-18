@@ -179,7 +179,7 @@ export function MarkdownPreview({ file, setContent }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocContainer, setTocContainer] = useState<HTMLElement | null>(null);
 
-  const editorConfig = useMemo(() => ({}), []);
+  const editorConfig = useMemo(() => ({ lineNumbers: true }), []);
   const locale = useMemo(() => (lang === "zh" ? zhLocale : undefined), [lang]);
   const fileDir = useMemo(() => file.path.replace(/[\\/][^\\/]*$/, ""), [file.path]);
 
@@ -256,8 +256,6 @@ export function MarkdownPreview({ file, setContent }: Props) {
         activeLineRef.current.off("cursorActivity");
       }
       activeLineRef.current = cm;
-      // Explicitly disable line numbers (editorConfig change may not retroactively apply)
-      cm.setOption("lineNumbers", false);
       // Highlight current line on cursor activity
       const mark = () => {
         const cur = cm.getCursor();

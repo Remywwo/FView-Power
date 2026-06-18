@@ -323,6 +323,12 @@ html, body, #root {
 .bytemd .CodeMirror-cursor { border-color: var(--md-fg) !important; }
 .bytemd .CodeMirror-selected { background: var(--md-code-bg) !important; }
 .bytemd .CodeMirror-focused .CodeMirror-selected { background: var(--md-border) !important; }
+/* Line numbers */
+.bytemd .CodeMirror-linenumber { color: var(--md-muted) !important; }
+.bytemd .CodeMirror-gutters {
+  background: var(--md-code-bg) !important;
+  border-color: var(--md-border) !important;
+}
 .bytemd-editor .CodeMirror pre.CodeMirror-placeholder { color: var(--md-muted) !important; }
 
 /* Prevent blank flicker when scrolling CodeMirror 5 (Tauri webview) */
