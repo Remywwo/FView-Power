@@ -7,7 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.3] - 2026-06-17
+## [0.3.1] - 2026-06-19
+
+### Added
+- AI panel toggle shortcut (`⌘⇧A`)
+
+## [0.3.0] - 2026-06-19
+
+### Added
+- **AI Assistant extension** (`extensions/ai-assistant`) — context-aware chat for Markdown & PDF files
+  - Configurable providers: OpenAI-compatible (OpenAI, Ollama, DeepSeek, Groq…) and Anthropic (Claude)
+  - Custom API key, base URL, and model name in Settings → AI tab
+  - Preset commands: summarize document, summarize selection, translate, explain code
+  - Streaming responses with cancel support
+  - Compact auto-open mode when viewing PDFs (input + presets only)
+  - PDF context extraction: outline parsing, page text caching for AI prompt injection
+  - Keyboard shortcuts: `⌘⇧Y` (summarize), `⌘⇧E` (explain code)
+- **Plugin infrastructure** — extension API for commands, toolbar slots, panels, and notifications
+  - `ExtensionManifest` / `HostAPI` / `Registry` / `CommandProvider` / `PluginProvider`
+  - `Slot` primitive for plugin-injected toolbar items
+  - `ToastHost` for transient notifications (info / warn / error)
+  - Centralized command system: `CommandProvider` replaces 7 scattered `keydown` listeners
+  - Selection store (`useSyncExternalStore`) exposes CM5/CM6 selection to plugins
+  - Isolated event buses (`fileBus`, `notifyBus`, `eventsBus`) prevent cross-talk
+
+### Changed
+- **Settings modal**: split into General / AI tabs, fixed height (70vh), API key show/hide toggle, toast on save
+- **Image preview**: default fit-to-viewport (`max-width:100%; max-height:100%`)
+- **Help modal**: added AI shortcuts table, settings tab mention, AI setup tip
+- **TOC**: tested left-side placement, reverted to right edge
+- **Docs website**: refreshed Features grid (6 cards), AI screenshot, hero subtitle, download links
+
+### Fixed
+- `CommandProvider` moved to outermost layer — hooks inside `ThemeProvider` now find context
+- Commands without shortcuts are now stored in registry (fixes toolbar-triggered commands)
+- `HostAPI` stale closure: `commandCtx` routed through ref to survive StrictMode remounts
+- Settings save now triggers a toast notification
+- AI panel closes when switching to unsupported file type
 
 ### Fixed
 - Local image plugin: broader URL match (`https:` + `try-catch` safety) for external images
