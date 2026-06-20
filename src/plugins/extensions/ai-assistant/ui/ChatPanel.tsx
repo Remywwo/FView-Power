@@ -103,8 +103,8 @@ export function ChatPanel({ provider, onClose, compact: startCompact, initialQue
 
     // Scope restriction: only summarization and translation.
     const scopeHint = targetLang === "zh"
-      ? "\n\n你只能做以下两件事：1) 总结文档/页面/章节内容；2) 翻译内容。对于其他任何请求，回复：'抱歉，我只能处理文档总结和翻译相关的请求。'"
-      : "\n\nYou can only do two things: 1) Summarize documents/pages/chapters; 2) Translate content. For any other request, reply: 'Sorry, I can only handle document summarization and translation requests.'";
+      ? "\n\n你只能做以下事情：文档分析、内容总结、翻译。对于其他任何请求，回复：'抱歉，我只能处理文档分析、总结和翻译相关的请求。'"
+      : "\n\nYou can only do: document analysis, content summarization, and translation. For any other request, reply: 'Sorry, I can only handle document analysis, summarization, and translation requests.'";
 
     if (f) {
       const sel = host.selection.get();
