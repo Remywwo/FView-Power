@@ -151,23 +151,14 @@ export function HtmlPreview({ file, setContent, isDark }: Props) {
   return (
     <div className="flex flex-col h-full">
       <div className="toolbar">
-        <button
-          onClick={() => setMode("preview")}
-          className={mode === "preview" ? "md-mode-btn md-mode-btn-active" : "md-mode-btn"}
-        >
-          {t("html.preview")}
+        <button onClick={() => setMode("split")} disabled={mode === "split"}>
+          {t("html.split")}
         </button>
-        <button
-          onClick={() => setMode("editor")}
-          className={mode === "editor" ? "md-mode-btn md-mode-btn-active" : "md-mode-btn"}
-        >
+        <button onClick={() => setMode("editor")} disabled={mode === "editor"}>
           {t("html.edit")}
         </button>
-        <button
-          onClick={() => setMode("split")}
-          className={mode === "split" ? "md-mode-btn md-mode-btn-active" : "md-mode-btn"}
-        >
-          {t("html.split")}
+        <button onClick={() => setMode("preview")} disabled={mode === "preview"}>
+          {t("html.preview")}
         </button>
         <span className="divider" />
         <button
