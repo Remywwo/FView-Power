@@ -15,18 +15,18 @@ A minimal cross-platform desktop file previewer & editor for macOS, Windows, and
 
 | Type | Edit | Preview |
 |---|---|---|
-| Markdown | Yes | CodeMirror editor + rendered preview (GFM, tables, task lists, code highlighting) |
+| Markdown | Yes | Milkdown WYSIWYG editor (GFM, tables, task lists, code highlighting, KaTeX math) |
 | Code (JS/TS/Python/Rust/Go/Java/C/C++/JSON/CSS/YAML/Shell/SQL/etc.) | Yes | CodeMirror with language-specific syntax highlighting |
 | HTML | Yes | CodeMirror editor + sandbox iframe live preview |
 | TXT / Log | Yes | Configurable typography |
 | PDF | No | pdfjs-dist canvas rendering with zoom, pagination, outline drawer |
 | Images (PNG/JPG/GIF/WebP/SVG/AVIF/BMP/TIFF/ICO) | No | Zoom, reset, fit |
 
-### View Modes (Markdown & HTML)
-- **Split** — editor + preview side-by-side (resizable panels)
-- **Editor-only** — full-width CodeMirror
-- **Preview-only** — full-width rendered output
-- Cycle with `⌘P`
+### View Modes (Markdown)
+- **WYSIWYG** — single-pane Milkdown editor with live rendering
+- **Floating toolbar** — formatting buttons appear on text selection
+- **Slash commands** — type `/` to insert blocks, tables, code, math
+- **Search** — `⌘F` to find and highlight matches
 
 ## Keyboard Shortcuts
 
@@ -46,7 +46,12 @@ All global shortcuts are dispatched by a centralized `CommandProvider` (see [Plu
 ### Markdown
 | Key | Action |
 |---|---|
-| `⌘P` | Cycle split/editor/preview mode |
+| `⌘F` | Find in document |
+| `Enter` | Next match |
+| `⇧Enter` | Previous match |
+| `Esc` | Close search |
+| `/` | Slash command menu |
+| Select text | Floating formatting toolbar |
 
 ### PDF (component-scoped, not yet migrated to the command system)
 | Key | Action |
@@ -64,7 +69,7 @@ All global shortcuts are dispatched by a centralized `CommandProvider` (see [Plu
 
 - **Drag & drop** — drop a file or folder anywhere on the window to open it
 - **CLI support** — `fview path/to/file.md` opens the file directly
-- **Markdown**: split/editor/preview views, scroll sync, floating TOC sidebar with auto-highlight
+- **Markdown**: Milkdown WYSIWYG editor, floating toolbar, slash commands, find & highlight, floating TOC
 - **PDF**: page navigation, zoom (0.5x–4x), floating outline drawer with auto-highlight
 - **Folder browsing**: left sidebar (260px), auto-expand ancestors, skip `node_modules`/`.git`/`target`/`dist` etc.
 - **Dirty tracking**: unsaved indicator for Markdown edits

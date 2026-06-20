@@ -82,7 +82,11 @@ export function HelpModal({ open, onClose }: Props) {
               <tr><th>Shortcut</th><th>{lang === "zh" ? "动作" : "Action"}</th></tr>
             </thead>
             <tbody>
-              <tr><td><kbd>⌘P</kbd></td><td>{lang === "zh" ? "切换视图：Split → Write → Preview" : "Cycle view: Split → Write → Preview"}</td></tr>
+              <tr><td><kbd>⌘F</kbd></td><td>{lang === "zh" ? "查找 / 替换" : "Find in document"}</td></tr>
+              <tr><td><kbd>Enter</kbd></td><td>{lang === "zh" ? "下一个匹配" : "Next match"}</td></tr>
+              <tr><td><kbd>⇧Enter</kbd></td><td>{lang === "zh" ? "上一个匹配" : "Previous match"}</td></tr>
+              <tr><td><kbd>Esc</kbd></td><td>{lang === "zh" ? "关闭查找" : "Close search"}</td></tr>
+              <tr><td><kbd>/</kbd></td><td>{lang === "zh" ? "斜杠命令（插入块）" : "Slash command (insert block)"}</td></tr>
             </tbody>
           </table>
           <p>{t("help.mdHint")}</p>
