@@ -13,6 +13,7 @@ import type { LoadedFile } from "@/hooks/useFileLoader";
 import { useSettings, getFontStack } from "@/hooks/useSettings";
 import { useI18n } from "@/hooks/useI18n";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
+import { triggerAIPanel } from "@/plugins/extensions/ai-assistant";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { WysiwygToc } from "@/components/WysiwygToc";
 import type { BytemdPlugin } from "bytemd";
@@ -184,8 +185,17 @@ export function MarkdownPreview({ file, setContent, onSelectionChange }: Props) 
   const [viewMode, setViewMode] = useState<ViewMode>("preview");
   const containerRef = useRef<HTMLDivElement>(null);
   const [tocContainer, setTocContainer] = useState<HTMLElement | null>(null);
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; text: string } | null>(null);
 
   const editorConfig = useMemo(() => ({}), []);
+
+  // Close context menu on click elsewhere
+  useEffect(() => {
+    if (!ctxMenu) return;
+    const close = () => setCtxMenu(null);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [ctxMenu]);
   const locale = useMemo(() => (lang === "zh" ? zhLocale : undefined), [lang]);
   const fileDir = useMemo(() => file.path.replace(/[\\/][^\\/]*$/, ""), [file.path]);
 
@@ -281,6 +291,19 @@ export function MarkdownPreview({ file, setContent, onSelectionChange }: Props) 
       };
       cm.on("cursorActivity", mark);
       mark();
+
+      // Right-click → AI on selected text
+      const prevCtx = activeLineRef.current?._fviewCtx;
+      const onCtx = (_: unknown, e: MouseEvent) => {
+        const sel = cm.getSelection();
+        if (sel) {
+          e.preventDefault();
+          setCtxMenu({ x: e.clientX, y: e.clientY, text: sel });
+        }
+      };
+      if (prevCtx) (cm as any).off("contextmenu", prevCtx);
+      (cm as any).on("contextmenu", onCtx);
+      (cm as any)._fviewCtx = onCtx;
     });
     observer.observe(el, { childList: true, subtree: true });
     return () => observer.disconnect();
@@ -404,6 +427,48 @@ export function MarkdownPreview({ file, setContent, onSelectionChange }: Props) 
         />
         <WysiwygToc container={tocContainer} hidden={viewMode === "write"} />
       </div>
+
+      {/* Right-click context menu for AI */}
+      {ctxMenu && (
+        <div
+          style={{
+            position: "fixed",
+            left: ctxMenu.x,
+            top: ctxMenu.y,
+            zIndex: 200,
+            background: "var(--md-bg)",
+            border: "1px solid var(--md-border)",
+            borderRadius: 8,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+            padding: 4,
+          }}
+          onMouseLeave={() => setCtxMenu(null)}
+        >
+          <button
+            onClick={() => {
+              triggerAIPanel(ctxMenu.text);
+              setCtxMenu(null);
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "6px 14px",
+              border: "none",
+              background: "none",
+              color: "var(--md-fg)",
+              fontSize: 13,
+              cursor: "pointer",
+              textAlign: "left",
+              borderRadius: 4,
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--md-code-bg)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+          >
+            ✨ {lang === "zh" ? "AI 对话" : "Ask AI"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

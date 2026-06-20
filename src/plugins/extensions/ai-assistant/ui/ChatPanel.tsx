@@ -51,9 +51,20 @@ export function ChatPanel({ provider, onClose, compact: startCompact, initialQue
     if (!input.trim() || loading) return;
     if (compact) setCompact(false);
 
+    // Determine response language: follow aiTargetLang, or fall back to UI locale.
+    const appSettings = host.settings.get();
+    const uiLang = host.i18n.lang();
+    const targetLang = appSettings.aiTargetLang === "auto" ? uiLang : appSettings.aiTargetLang;
+
     // Inject file context so the AI always knows what the user is looking at.
     let system: string | undefined;
     const f = host.file.get();
+
+    // Language prefix — always prepended so free-form chat respects locale.
+    const langHint = targetLang === "zh"
+      ? "\n\nReply in Simplified Chinese (简体中文)."
+      : "\n\nReply in English.";
+
     if (f) {
       const sel = host.selection.get();
       const selText = sel.markdown || sel.code || sel.html || "";
@@ -73,7 +84,7 @@ export function ChatPanel({ provider, onClose, compact: startCompact, initialQue
       }
     }
 
-    send(input.trim(), { system });
+    send(input.trim(), { system: system ? system + langHint : langHint.trim() });
     setInput("");
   }, [input, loading, send, compact, host]);
 

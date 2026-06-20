@@ -41,22 +41,31 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
   }, [host]);
 
   const openPanel = useCallback(() => {
+    if (settings.aiProvider === "none" || !settings.aiApiKey) {
+      host.notify(host.i18n.t("ai.noApiKey"), "warn");
+      return;
+    }
     if (!isSupported()) {
-      host.notify("AI only supports Markdown and PDF", "warn");
+      host.notify(host.i18n.t("ai.unsupportedType"), "warn");
       return;
     }
     setCompact(false);
     setOpen(true);
     requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
-  }, [isSupported, host]);
+  }, [settings, isSupported, host]);
 
   const toggle = useCallback(() => {
-    if (open) close();
-    else if (isSupported()) openPanel();
-    else {
-      host.notify("AI only supports Markdown and PDF", "warn");
+    if (open) { close(); return; }
+    if (settings.aiProvider === "none" || !settings.aiApiKey) {
+      host.notify(host.i18n.t("ai.noApiKey"), "warn");
+      return;
     }
-  }, [open, isSupported, openPanel, close, host]);
+    if (!isSupported()) {
+      host.notify(host.i18n.t("ai.unsupportedType"), "warn");
+      return;
+    }
+    openPanel();
+  }, [open, settings, isSupported, openPanel, close, host]);
 
   // When a PDF is opened, show the panel in compact mode by default.
   useEffect(() => {
@@ -68,7 +77,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
         if (open) close();
         return;
       }
-      if (f.kind === "pdf") {
+      if (f.kind === "pdf" && settings.aiProvider !== "none" && settings.aiApiKey) {
         setInitialQuestion(null);
         setCompact(true);
         setOpen(true);
@@ -77,7 +86,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
     };
     const unsub = host.file.subscribe(check);
     return unsub;
-  }, [host, open, close]);
+  }, [host, settings, open, close]);
 
   // Module-level trigger so external code can open the panel with a question.
   useEffect(() => {
@@ -113,7 +122,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
         if (file) {
           openPanel();
         } else {
-          host.notify("No file open", "warn");
+          host.notify(host.i18n.t("ai.noFile"), "warn");
         }
       }
     },
@@ -130,7 +139,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
       if (text) {
         openPanel();
       } else {
-        host.notify("Select some code first", "warn");
+        host.notify(host.i18n.t("ai.noSelection"), "warn");
       }
     },
   });

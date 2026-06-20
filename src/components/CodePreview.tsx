@@ -1,4 +1,4 @@
-import { useMemo, useRef, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { EditorView, keymap } from "@codemirror/view";
 import { searchKeymap } from "@codemirror/search";
@@ -6,6 +6,7 @@ import type { Extension } from "@codemirror/state";
 import type { LoadedFile } from "@/hooks/useFileLoader";
 import { useSettings } from "@/hooks/useSettings";
 import { useI18n } from "@/hooks/useI18n";
+import { triggerAIPanel } from "@/plugins/extensions/ai-assistant";
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
 import { rust } from "@codemirror/lang-rust";
@@ -68,6 +69,14 @@ export function CodePreview({ file, setContent, isDark, readOnly = false, onSele
   const onSelectionChangeRef = useRef(onSelectionChange);
   onSelectionChangeRef.current = onSelectionChange;
 
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; text: string } | null>(null);
+  useEffect(() => {
+    if (!ctxMenu) return;
+    const close = () => setCtxMenu(null);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [ctxMenu]);
+
   const extensions = useMemo<Extension[]>(
     () => [
       ...languageExtension(file.language),
@@ -108,7 +117,19 @@ export function CodePreview({ file, setContent, isDark, readOnly = false, onSele
           </>
         )}
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0"
+        onContextMenu={(e) => {
+          const editor = (e.target as HTMLElement)?.closest(".cm-editor") as any;
+          const cmView = editor?.cmView?.view as EditorView | undefined;
+          if (cmView) {
+            const s = cmView.state.selection.main;
+            const text = s.empty ? "" : cmView.state.sliceDoc(s.from, s.to);
+            if (text) {
+              e.preventDefault();
+              setCtxMenu({ x: e.clientX, y: e.clientY, text });
+            }
+          }
+        }}>
         <CodeMirror
           value={file.content}
           onChange={readOnly ? undefined : setContent}
@@ -129,6 +150,47 @@ export function CodePreview({ file, setContent, isDark, readOnly = false, onSele
           style={{ height: "100%", ...editorStyle }}
         />
       </div>
+
+      {ctxMenu && (
+        <div
+          style={{
+            position: "fixed",
+            left: ctxMenu.x,
+            top: ctxMenu.y,
+            zIndex: 100,
+            background: "var(--md-bg)",
+            border: "1px solid var(--md-border)",
+            borderRadius: 8,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+            padding: 4,
+          }}
+          onMouseLeave={() => setCtxMenu(null)}
+        >
+          <button
+            onClick={() => {
+              triggerAIPanel(ctxMenu.text);
+              setCtxMenu(null);
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              padding: "6px 14px",
+              border: "none",
+              background: "none",
+              color: "var(--md-fg)",
+              fontSize: 13,
+              cursor: "pointer",
+              textAlign: "left",
+              borderRadius: 4,
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--md-code-bg)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+          >
+            ✨ {t("code.aiAsk") || "Ask AI"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

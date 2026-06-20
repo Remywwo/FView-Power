@@ -81,6 +81,10 @@ export const translations = {
       summarizing: "Summarizing…",
       translating: "Translating…",
       explaining: "Explaining…",
+      noApiKey: "Please configure an AI provider in Settings → AI",
+      unsupportedType: "AI only supports Markdown and PDF",
+      noFile: "No file open",
+      noSelection: "Select some code first",
     },
     pdf: {
       loading: "Loading PDF…",
@@ -263,6 +267,10 @@ export const translations = {
       summarizing: "正在总结…",
       translating: "正在翻译…",
       explaining: "正在解释…",
+      noApiKey: "请先在 Settings → AI 中配置 API 提供商",
+      unsupportedType: "AI 仅支持 Markdown 和 PDF",
+      noFile: "没有打开的文件",
+      noSelection: "请先选中一些代码",
     },
     pdf: {
       loading: "正在加载 PDF…",

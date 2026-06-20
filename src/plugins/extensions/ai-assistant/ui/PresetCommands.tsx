@@ -28,7 +28,7 @@ export function PresetCommands({ onSend, loading }: Props) {
       label: t("ai.summarizeDoc"),
       action: () => {
         const file = concrete.file.get();
-        if (!file) { concrete.notify("No file open", "warn"); return; }
+        if (!file) { concrete.notify(concrete.i18n.t("ai.noFile"), "warn"); return; }
         const req = buildSummarizePrompt("document", { input: file.content, targetLang });
         onSend(req.user, { system: req.system });
       },
@@ -38,7 +38,7 @@ export function PresetCommands({ onSend, loading }: Props) {
       action: () => {
         const sel = concrete.selection.get();
         const text = sel.markdown || sel.code || sel.html;
-        if (!text) { concrete.notify("No selection", "warn"); return; }
+        if (!text) { concrete.notify(concrete.i18n.t("ai.noSelection"), "warn"); return; }
         const req = buildSummarizePrompt("selection", { input: text, targetLang });
         onSend(req.user, { system: req.system });
       },
@@ -49,7 +49,7 @@ export function PresetCommands({ onSend, loading }: Props) {
         const file = concrete.file.get();
         const sel = concrete.selection.get();
         const text = (sel.markdown || sel.code || sel.html) || file?.content;
-        if (!text) { concrete.notify("No file or selection", "warn"); return; }
+        if (!text) { concrete.notify(concrete.i18n.t("ai.noFile"), "warn"); return; }
         const req = buildTranslatePrompt({ input: text.slice(0, 8000), targetLang });
         onSend(req.user, { system: req.system });
       },
@@ -60,7 +60,7 @@ export function PresetCommands({ onSend, loading }: Props) {
         const sel = concrete.selection.get();
         const text = sel.code || sel.markdown;
         const file = concrete.file.get();
-        if (!text) { concrete.notify("Select some code first", "warn"); return; }
+        if (!text) { concrete.notify(concrete.i18n.t("ai.noSelection"), "warn"); return; }
         const req = buildExplainPrompt({ input: text, language: file?.language });
         onSend(req.user, { system: req.system });
       },
