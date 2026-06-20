@@ -3,8 +3,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useExtensionContext } from "@/hooks/usePlugin";
 import type { ConcreteHostAPI } from "@/plugins/host";
 import { buildSummarizePrompt } from "../prompts/summarize";
-import { buildTranslatePrompt } from "../prompts/translate";
-import { buildExplainPrompt } from "../prompts/explain";
+import { getPdfContext, getPdfCurrentPage, getPageText, getChapterText, getOutlineSummary } from "../pdfContext";
 
 interface Props {
   onSend: (userInput: string, opts?: { system?: string; input?: string }) => void;
@@ -25,44 +24,62 @@ export function PresetCommands({ onSend, loading }: Props) {
 
   const commands = [
     {
+      label: t("ai.summarizePage"),
+      action: () => {
+        const file = concrete.file.get();
+        if (!file) { concrete.notify(concrete.i18n.t("ai.noFile"), "warn"); return; }
+        if (file.kind === "pdf") {
+          const page = getPdfCurrentPage();
+          const text = getPageText(page);
+          if (!text) { concrete.notify(concrete.i18n.t("ai.noFile"), "warn"); return; }
+          const req = buildSummarizePrompt("pdfPage", { input: text, targetLang });
+          onSend(req.user, { system: req.system });
+        } else {
+          const sel = concrete.selection.get();
+          const selText = sel.markdown || "";
+          const input = selText || file.content;
+          const req = buildSummarizePrompt(selText ? "selection" : "document", { input, targetLang });
+          onSend(req.user, { system: req.system });
+        }
+      },
+    },
+    {
+      label: t("ai.summarizeChapter"),
+      action: () => {
+        const file = concrete.file.get();
+        if (!file) { concrete.notify(concrete.i18n.t("ai.noFile"), "warn"); return; }
+        if (file.kind === "pdf") {
+          const outline = getOutlineSummary();
+          const page = getPdfCurrentPage();
+          const pageText = getPageText(page);
+          // Try to find the chapter that contains the current page via outline context.
+          // For now, inject the full outline + current page and let the AI identify the chapter.
+          const ctx = getPdfContext(page);
+          if (!ctx) { concrete.notify(concrete.i18n.t("ai.noFile"), "warn"); return; }
+          const system = `You are reading a PDF. Identify the chapter that contains page ${page} and summarize that chapter specifically.\n\n${ctx}`;
+          const user = `Summarize the chapter that contains page ${page}.`;
+          onSend(user, { system });
+        } else {
+          const req = buildSummarizePrompt("document", { input: file.content, targetLang });
+          onSend(req.user, { system: req.system });
+        }
+      },
+    },
+    {
       label: t("ai.summarizeDoc"),
       action: () => {
         const file = concrete.file.get();
         if (!file) { concrete.notify(concrete.i18n.t("ai.noFile"), "warn"); return; }
-        const req = buildSummarizePrompt("document", { input: file.content, targetLang });
-        onSend(req.user, { system: req.system });
-      },
-    },
-    {
-      label: t("ai.summarizeSelection"),
-      action: () => {
-        const sel = concrete.selection.get();
-        const text = sel.markdown || sel.code || sel.html;
-        if (!text) { concrete.notify(concrete.i18n.t("ai.noSelection"), "warn"); return; }
-        const req = buildSummarizePrompt("selection", { input: text, targetLang });
-        onSend(req.user, { system: req.system });
-      },
-    },
-    {
-      label: t("ai.translate"),
-      action: () => {
-        const file = concrete.file.get();
-        const sel = concrete.selection.get();
-        const text = (sel.markdown || sel.code || sel.html) || file?.content;
-        if (!text) { concrete.notify(concrete.i18n.t("ai.noFile"), "warn"); return; }
-        const req = buildTranslatePrompt({ input: text.slice(0, 8000), targetLang });
-        onSend(req.user, { system: req.system });
-      },
-    },
-    {
-      label: t("ai.explain"),
-      action: () => {
-        const sel = concrete.selection.get();
-        const text = sel.code || sel.markdown;
-        const file = concrete.file.get();
-        if (!text) { concrete.notify(concrete.i18n.t("ai.noSelection"), "warn"); return; }
-        const req = buildExplainPrompt({ input: text, language: file?.language });
-        onSend(req.user, { system: req.system });
+        if (file.kind === "pdf") {
+          const ctx = getPdfContext(getPdfCurrentPage());
+          if (!ctx) { concrete.notify(concrete.i18n.t("ai.noFile"), "warn"); return; }
+          const system = `You are reading a PDF document. Here is the full outline:\n\n${getOutlineSummary()}\n\nSummarize the ENTIRE document based on the outline structure.`;
+          const user = "Summarize this entire document.";
+          onSend(user, { system });
+        } else {
+          const req = buildSummarizePrompt("document", { input: file.content, targetLang });
+          onSend(req.user, { system: req.system });
+        }
       },
     },
   ];

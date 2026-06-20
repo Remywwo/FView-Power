@@ -18,9 +18,11 @@ interface Props {
   pendingInput?: string | null;
   /** When this changes, messages are cleared (e.g. file closed). */
   clearKey?: number;
+  /** When this increments, focus the input. */
+  focusKey?: number;
 }
 
-export function ChatPanel({ provider, onClose, compact: startCompact, initialQuestion, pendingInput, clearKey }: Props) {
+export function ChatPanel({ provider, onClose, compact: startCompact, initialQuestion, pendingInput, clearKey, focusKey }: Props) {
   const { t } = useI18n();
   const { host } = useExtensionContext();
   const { messages, loading, send, cancel, clear } = useChat({ provider });
@@ -28,11 +30,27 @@ export function ChatPanel({ provider, onClose, compact: startCompact, initialQue
   const [compact, setCompact] = useState(startCompact ?? false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  // Auto-focus when compact mode exits (panel expands from compact → full).
+  const prevCompact = useRef(startCompact);
 
   useEffect(() => {
     const el = listRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
+
+  useEffect(() => {
+    if (prevCompact.current && !compact && !initialQuestion) {
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+    prevCompact.current = compact;
+  }, [compact, initialQuestion]);
+
+  // Focus input when parent signals (toolbar button / shortcut / PDF auto-open).
+  useEffect(() => {
+    if (focusKey && focusKey > 0 && !initialQuestion) {
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  }, [focusKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear messages when file is closed.
   useEffect(() => {
@@ -83,6 +101,11 @@ export function ChatPanel({ provider, onClose, compact: startCompact, initialQue
       ? "\n\nReply in Simplified Chinese (简体中文)."
       : "\n\nReply in English.";
 
+    // Scope restriction: only summarization and translation.
+    const scopeHint = targetLang === "zh"
+      ? "\n\n你只能做以下两件事：1) 总结文档/页面/章节内容；2) 翻译内容。对于其他任何请求，回复：'抱歉，我只能处理文档总结和翻译相关的请求。'"
+      : "\n\nYou can only do two things: 1) Summarize documents/pages/chapters; 2) Translate content. For any other request, reply: 'Sorry, I can only handle document summarization and translation requests.'";
+
     if (f) {
       const sel = host.selection.get();
       const selText = sel.markdown || sel.code || sel.html || "";
@@ -92,7 +115,7 @@ export function ChatPanel({ provider, onClose, compact: startCompact, initialQue
         if (ctx) {
           system = `You are reading a PDF document. Here is the structure and current page. Use this to answer:\n\n${ctx}`;
         }
-      } else if (f.kind === "markdown" || f.kind === "text" || f.kind === "code") {
+      } else if (f.kind === "markdown") {
         const preview = f.content.slice(0, 4000);
         const lang = f.language ? ` (${f.language})` : "";
         system = `The user has a ${f.kind} file open${lang}: "${f.name}".\n\nFile content:\n${preview}${f.content.length > 4000 ? "\n…(truncated)" : ""}`;
@@ -102,7 +125,7 @@ export function ChatPanel({ provider, onClose, compact: startCompact, initialQue
       }
     }
 
-    send(input.trim(), { system: system ? system + langHint : langHint.trim() });
+    send(input.trim(), { system: system ? system + langHint + scopeHint : (langHint + scopeHint).trim() });
     setInput("");
   }, [input, loading, send, compact, host]);
 

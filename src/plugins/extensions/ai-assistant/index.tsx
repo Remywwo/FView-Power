@@ -24,6 +24,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
   const [initialQuestion, setInitialQuestion] = useState<string | null>(null);
   const [compact, setCompact] = useState(false);
   const [clearKey, setClearKey] = useState(0);
+  const [focusKey, setFocusKey] = useState(0);
   const pendingInputRef = useRef<string | null>(null);
   const { settings } = useSettings();
   const aiProvider = useAIProvider();
@@ -52,6 +53,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
     }
     setCompact(false);
     setOpen(true);
+    setFocusKey((k) => k + 1);
     requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
   }, [settings, isSupported, host]);
 
@@ -82,6 +84,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
         setInitialQuestion(null);
         setCompact(true);
         setOpen(true);
+        setFocusKey((k) => k + 1);
         requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
       }
     };
@@ -103,6 +106,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
       }
       setCompact(false);
       setOpen(true);
+      setFocusKey((k) => k + 1);
       requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
     };
     return () => { panelTrigger = null; };
@@ -137,22 +141,6 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
     },
   });
 
-  // Shortcut: explain code (or selection)
-  useRegisterCommand({
-    id: "ai.explain",
-    label: "AI: Explain Code",
-    shortcut: "Mod+Shift+E",
-    run: () => {
-      const sel = host.selection.get();
-      const text = sel.code || sel.markdown;
-      if (text) {
-        openPanel();
-      } else {
-        host.notify(host.i18n.t("ai.noSelection"), "warn");
-      }
-    },
-  });
-
   return (
     <>
       <button
@@ -182,7 +170,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
           pointerEvents: open ? "auto" : "none",
         }}
       >
-        <ChatPanel provider={getProvider} onClose={close} compact={compact} initialQuestion={initialQuestion} clearKey={clearKey} pendingInput={pendingInputRef.current} />
+        <ChatPanel provider={getProvider} onClose={close} compact={compact} initialQuestion={initialQuestion} clearKey={clearKey} pendingInput={pendingInputRef.current} focusKey={focusKey} />
       </div>
     </>
   );
