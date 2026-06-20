@@ -15,18 +15,18 @@
 
 | 类型 | 可编辑 | 预览方式 |
 |---|---|---|
-| Markdown | 是 | bytemd（CodeMirror 5）编辑器 + 渲染预览（GFM、表格、任务列表、代码高亮、Math、Mermaid、frontmatter、emoji） |
+| Markdown | 是 | Milkdown WYSIWYG 编辑器（GFM、表格、任务列表、代码高亮、KaTeX 数学） |
 | 代码（JS/TS/Python/Rust/Go/Java/C/C++/JSON/CSS/YAML/Shell/SQL 等） | 是 | CodeMirror 6 + `@uiw/react-codemirror`，自动识别语言并高亮 |
 | HTML | 是 | CodeMirror 6 编辑器 + iframe 沙箱实时预览（Rust `tiny_http` 起本地服务器） |
 | TXT / Log | 是 | 可调节排版样式 |
 | PDF | 否 | pdfjs-dist canvas 渲染，支持缩放、翻页、目录浮动面板 |
 | 图片（PNG/JPG/GIF/WebP/SVG/AVIF/BMP/TIFF/ICO） | 否 | 缩放、重置、适应 |
 
-### 视图模式（Markdown & HTML）
-- **分屏** — 编辑器 + 预览并排（可拖拽调整宽度）
-- **仅编辑** — 全宽 bytemd 编辑器
-- **仅预览** — 全宽渲染输出
-- `⌘P` 循环切换
+### 视图模式（Markdown）
+- **所见即所得** — 单窗格 Milkdown 编辑器，实时渲染
+- **浮动工具栏** — 选中文字弹出格式按钮
+- **斜杠命令** — 输入 `/` 插入块、表格、代码、数学公式
+- **查找** — `⌘F` 搜索并高亮匹配
 
 ## 快捷键
 
@@ -46,7 +46,12 @@
 ### Markdown
 | 按键 | 操作 |
 |---|---|
-| `⌘P` | 切换分屏 / 编辑 / 预览模式 |
+| `⌘F` | 在文档中查找 |
+| `Enter` | 下一个匹配 |
+| `⇧Enter` | 上一个匹配 |
+| `Esc` | 关闭查找 |
+| `/` | 斜杠命令菜单 |
+| 选中文字 | 浮动格式工具栏 |
 
 ### PDF（组件级快捷键，尚未迁移到命令系统）
 | 按键 | 操作 |
@@ -64,7 +69,7 @@
 
 - **拖拽打开** — 将文件或文件夹拖入窗口任意位置即可打开
 - **命令行支持** — `fview path/to/file.md` 启动时直接打开文件
-- **Markdown**：分屏/编辑/预览三种视图，滚动同步，浮动目录自动高亮，30+ 主题切换
+- **Markdown**：所见即所得编辑器，浮动工具栏，斜杠命令，查找与高亮，浮动目录自动高亮
 - **PDF**：翻页导航，缩放（0.5x–4x），浮动目录面板自动高亮
 - **文件夹浏览**：左侧侧边栏（260px），自动展开父目录，跳过 `node_modules`/`.git`/`target`/`dist` 等
 - **脏标记**：Markdown 编辑未保存时显示指示
