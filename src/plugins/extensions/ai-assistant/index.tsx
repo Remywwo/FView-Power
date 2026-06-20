@@ -84,7 +84,6 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
         setInitialQuestion(null);
         setCompact(true);
         setOpen(true);
-        setFocusKey((k) => k + 1);
         requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
       }
     };
