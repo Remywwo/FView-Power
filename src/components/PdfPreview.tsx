@@ -12,11 +12,12 @@ import {
   setCurrentPdfPage,
   clearPdfContext,
 } from "@/plugins/extensions/ai-assistant/pdfContext";
+import { triggerAIPanel } from "@/plugins/extensions/ai-assistant";
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export function PdfPreview({ file }: { file: LoadedFile }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [pages, setPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1.4);
@@ -28,6 +29,13 @@ export function PdfPreview({ file }: { file: LoadedFile }) {
   const [pageText, setPageText] = useState("");
   const [textItems, setTextItems] = useState<Array<{ str: string; tx: number; ty: number; fs: number }>>([]);
   const [canvasSize, setCanvasSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; text: string } | null>(null);
+  useEffect(() => {
+    if (!ctxMenu) return;
+    const close = () => setCtxMenu(null);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [ctxMenu]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasScrollRef = useRef<HTMLDivElement | null>(null);
   const outlineScrollRef = useRef<HTMLDivElement | null>(null);
@@ -276,6 +284,13 @@ export function PdfPreview({ file }: { file: LoadedFile }) {
                       userSelect: "text",
                       cursor: "text",
                     }}
+                    onContextMenu={(e) => {
+                      const sel = window.getSelection()?.toString().trim();
+                      if (sel) {
+                        e.preventDefault();
+                        setCtxMenu({ x: e.clientX, y: e.clientY, text: sel });
+                      }
+                    }}
                   >
                     {textItems.map((item, i) => {
                       const left = item.tx * scale;
@@ -310,6 +325,47 @@ export function PdfPreview({ file }: { file: LoadedFile }) {
           currentPage={currentPage}
           onJump={setCurrentPage}
         />
+
+        {ctxMenu && (
+          <div
+            style={{
+              position: "fixed",
+              left: ctxMenu.x,
+              top: ctxMenu.y,
+              zIndex: 100,
+              background: "var(--md-bg)",
+              border: "1px solid var(--md-border)",
+              borderRadius: 8,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+              padding: 4,
+            }}
+            onMouseLeave={() => setCtxMenu(null)}
+          >
+            <button
+              onClick={() => {
+                triggerAIPanel(ctxMenu.text);
+                setCtxMenu(null);
+              }}
+              style={{
+                display: "block",
+                width: "100%",
+                padding: "6px 14px",
+                border: "none",
+                background: "none",
+                color: "var(--md-fg)",
+                fontSize: 13,
+                cursor: "pointer",
+                textAlign: "left",
+                borderRadius: 4,
+                whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--md-code-bg)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+            >
+              ✨ {lang === "zh" ? "AI 对话" : "Ask AI"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
