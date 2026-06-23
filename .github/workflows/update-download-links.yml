@@ -37,6 +37,9 @@ jobs:
           DEB=$(echo "$ASSETS" | grep -E '\.deb$' | head -1)
 
           DL_BASE="https://github.com/$REPO/releases/download/$TAG"
+          MAC_URL="${MAC:+$DL_BASE/$MAC}"
+          WIN_URL="${WIN:+$DL_BASE/$WIN}"
+          DEB_URL="${DEB:+$DL_BASE/$DEB}"
 
           echo "Resolved assets:"
           echo "  macOS : ${MAC:-none}"
@@ -45,41 +48,56 @@ jobs:
 
           FILE="docs/index.html"
 
-          if [ -n "$MAC" ]; then
-            DL="$DL_BASE/$MAC"
-            # Replace the first /releases href that is mac-specific
-            # The macOS button uses an Apple logo SVG (path starts with M17.05...)
-            sed -i "0,/href=\"https:\/\/github.com\/.*\/releases[^\"]*\"/{
-              s|href=\"https://github.com/[^\"]*/releases[^\"]*\"|href=\"$DL\"|
-            }" "$FILE"
-            echo "✓ macOS link updated"
-          fi
+          # Use Python (not sed) to update each platform's href. Sed range-based
+          # editing kept overstepping into the next <a class="dl"> block, which
+          # is how Linux silently lost its .deb URL several releases in a row.
+          # The Python rewrite matches each block by its i18n key and replaces
+          # the href in-place; it is unambiguous and side-effect-free.
+          MAC_URL="$MAC_URL" WIN_URL="$WIN_URL" DEB_URL="$DEB_URL" python3 - "$FILE" <<'PY'
+import os
+import re
+import sys
 
-          if [ -n "$WIN" ]; then
-            DL="$DL_BASE/$WIN"
-            # Windows button uses a window-like SVG (path starts with M3 12...)
-            if grep -q 'M3 12V6\.75' "$FILE"; then
-              sed -i "/M3 12V6\.75/,/class=\"dl\"/{
-                /releases/{
-                  s|href=\"[^\"]*\"|href=\"$DL\"|
-                }
-              }" "$FILE"
-              echo "✓ Windows link updated"
-            fi
-          fi
+docs_file = sys.argv[1]
+mac_url = os.environ.get("MAC_URL") or ""
+win_url = os.environ.get("WIN_URL") or ""
+deb_url = os.environ.get("DEB_URL") or ""
 
-          if [ -n "$DEB" ]; then
-            DL="$DL_BASE/$DEB"
-            # Linux button uses Penguin SVG (path starts with M12.504...)
-            if grep -q 'M12\.504 0' "$FILE"; then
-              sed -i "/M12\.504 0/,/class=\"dl\"/{
-                /releases/{
-                  s|href=\"[^\"]*\"|href=\"$DL\"|
-                }
-              }" "$FILE"
-              echo "✓ Linux link updated"
-            fi
-          fi
+URLS = {
+    "download.mac": mac_url,
+    "download.win": win_url,
+    "download.lin": deb_url,
+}
+
+with open(docs_file, encoding="utf-8") as f:
+    content = f.read()
+
+def replace_block(match):
+    block = match.group(0)
+    name = re.search(r'data-i18n="(download\.(mac|win|lin))"', block)
+    if not name:
+        return block
+    url = URLS.get(name.group(1))
+    if not url:
+        return block  # no asset for this platform; leave block alone
+    return re.sub(r'href="[^"]+"', f'href="{url}"', block, count=1)
+
+new_content = re.sub(
+    r'<a [^>]*class="dl"[^>]*>.*?</a>',
+    replace_block,
+    content,
+    flags=re.DOTALL,
+)
+
+if new_content != content:
+    with open(docs_file, "w", encoding="utf-8") as f:
+        f.write(new_content)
+    for key, url in URLS.items():
+        if url:
+            print(f"✓ {key}: {url.rsplit('/', 1)[-1]}")
+else:
+    print("No changes needed.")
+PY
 
       - name: Commit and push
         run: |
@@ -87,6 +105,34 @@ jobs:
             echo "No changes to commit."
             exit 0
           fi
+
+          # Final guard: verify each platform section's href extension matches
+          # the i18n key, so any future regression is caught before push.
+          python3 - "$FILE" <<'PY'
+import re, sys
+EXPECTED = {"download.mac": ".dmg", "download.win": ".exe", "download.lin": ".deb"}
+with open(sys.argv[1], encoding="utf-8") as f:
+    content = f.read()
+blocks = re.findall(r'<a [^>]*class="dl"[^>]*>.*?</a>', content, re.DOTALL)
+errors = 0
+for block in blocks:
+    name = re.search(r'data-i18n="(download\.(mac|win|lin))"', block)
+    href = re.search(r'href="([^"]+)"', block)
+    if not (name and href):
+        continue
+    ext = EXPECTED[name.group(1)]
+    if not href.group(1).lower().endswith(ext):
+        print(f"ERROR: {name.group(1)} href ends with '{href.group(1).rsplit('.',1)[-1]}' but expected '{ext}': {href.group(1)}", file=sys.stderr)
+        errors += 1
+    else:
+        print(f"OK   {name.group(1)}: {href.group(1).rsplit('/', 1)[-1]}")
+sys.exit(1 if errors else 0)
+PY
+          if [ $? -ne 0 ]; then
+            echo "✗ Platform link validation failed; refusing to push." >&2
+            exit 1
+          fi
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/index.html
