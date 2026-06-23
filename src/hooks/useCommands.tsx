@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import type { CommandContribution } from "@/plugins/types";
+import { isMacPlatform } from "@/utils/platform";
 
 /**
  * Public surface of the command system. Provided via React Context
@@ -113,13 +114,6 @@ function parseShortcut(shortcut: string): ParsedShortcut {
     else result.key = part.length === 1 ? part.toLowerCase() : part;
   }
   return result;
-}
-
-function isMacPlatform(): boolean {
-  if (typeof navigator === "undefined") return false;
-  const platform = navigator.platform || "";
-  const userAgent = navigator.userAgent || "";
-  return /Mac|iPhone|iPad/.test(platform) || /Mac OS X/.test(userAgent);
 }
 
 function eventKey(e: KeyboardEvent): string {

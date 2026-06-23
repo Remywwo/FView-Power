@@ -712,6 +712,16 @@ html, body, #root {
   opacity: 0.75;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
 }
+.empty-action-shortcut .shortcut-modifier {
+  font-size: 0.78em;
+  color: var(--md-muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+  text-transform: none;
+  /* small breathing room between modifier and letter */
+  padding-right: 0.1em;
+}
 
 /* Toolbar */
 .toolbar {
@@ -912,4 +922,128 @@ html, body, #root {
 /* Dark mode: stronger page-chrome shadow. */
 .dark .docx-preview-container .docx-wrapper > section.docx {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* === Recents (empty state) === */
+.recents {
+  width: 100%;
+  max-width: 360px;
+  margin: 1.6rem auto 0;
+}
+
+.recents-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--md-muted);
+  margin-bottom: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+.recents-header-title {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.recents-clear {
+  background: transparent;
+  border: none;
+  color: var(--md-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.recents-clear:hover {
+  color: var(--md-fg);
+  background: var(--md-code-bg);
+}
+
+.recents-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--md-fg);
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.85rem;
+  position: relative;
+  transition: background 0.1s;
+}
+.recent-item:hover {
+  background: var(--md-code-bg);
+}
+
+.recent-item-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--md-muted);
+}
+
+.recent-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.recent-item-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--md-fg);
+}
+
+.recent-item-path {
+  font-size: 0.72rem;
+  color: var(--md-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--cm-font-family, "JetBrains Mono", monospace);
+}
+
+.recent-item-remove {
+  flex-shrink: 0;
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--md-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 1rem;
+  line-height: 1;
+}
+.recent-item:hover .recent-item-remove,
+.recent-item-remove:focus-visible {
+  display: inline-flex;
+}
+.recent-item-remove:hover {
+  color: #ef4444;
+  background: var(--md-code-bg);
+}
+
+.recents-empty {
+  font-size: 0.8rem;
+  color: var(--md-muted);
+  padding: 0.75rem;
+  text-align: center;
 }

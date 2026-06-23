@@ -6,6 +6,8 @@ import { useTheme } from "@/hooks/useTheme";
 import { useI18n } from "@/hooks/useI18n";
 import { useSettings } from "@/hooks/useSettings";
 import { useCommand, useCommandContext } from "@/hooks/useCommands";
+import { useRecents, type RecentItem } from "@/hooks/useRecents";
+import { isMacPlatform } from "@/utils/platform";
 import { setEditorSelection } from "@/hooks/useSelection";
 import { createHostAPI, type ConcreteHostAPI } from "@/plugins/host";
 import { PluginProvider } from "@/hooks/usePlugin";
@@ -115,6 +117,61 @@ export default function App() {
       }
     }
   }, [folder, loadFromPath]);
+
+  // ── Recents ─────────────────────────────────────────────────────
+  // Auto-record every successful open. The path-change effect fires on
+  // any loadFromPath/setFolderPath path (dialog, drop, CLI, recents click,
+  // folder-tree click) so all entry points are covered.
+  const recents = useRecents();
+  // Tracks the most recent user-initiated open from a recent-item click.
+  // If a following render shows an error instead of a successful load, the
+  // path is stale and we auto-remove it.
+  const attemptedRecentRef = useRef<RecentItem | null>(null);
+
+  useEffect(() => {
+    if (current) {
+      recents.recordOpen(current.path, "file", current.name);
+      if (attemptedRecentRef.current?.path === current.path) {
+        attemptedRecentRef.current = null;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.path]);
+
+  useEffect(() => {
+    if (folder.root) {
+      recents.recordOpen(folder.root.path, "folder", folder.root.name);
+      if (attemptedRecentRef.current?.path === folder.root.path) {
+        attemptedRecentRef.current = null;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folder.root?.path]);
+
+  useEffect(() => {
+    const attempted = attemptedRecentRef.current;
+    if (!attempted) return;
+    if (attempted.kind === "file" && loader.error) {
+      recents.removeRecent(attempted.path);
+      attemptedRecentRef.current = null;
+    } else if (attempted.kind === "folder" && folder.error) {
+      recents.removeRecent(attempted.path);
+      attemptedRecentRef.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loader.error, folder.error]);
+
+  const handleOpenRecent = useCallback(
+    (item: RecentItem) => {
+      attemptedRecentRef.current = item;
+      if (item.kind === "file") {
+        void loadFromPath(item.path);
+      } else {
+        void folder.setFolderPath(item.path);
+      }
+    },
+    [loadFromPath, folder],
+  );
 
   // Close open menu on outside click or Esc
   useEffect(() => {
@@ -250,6 +307,10 @@ export default function App() {
               onOpen={cmdOpen}
               onOpenFolder={() => cmdOpenFolder()}
               onHelp={() => setHelpOpen(true)}
+              recents={recents.recents}
+              onOpenRecent={handleOpenRecent}
+              onRemoveRecent={recents.removeRecent}
+              onClearRecents={recents.clearRecents}
             />
           )}
           {!current && folder.root && (
@@ -308,8 +369,25 @@ export default function App() {
   );
 }
 
-function EmptyState({ onOpen, onOpenFolder, onHelp }: { onOpen: () => void; onOpenFolder: () => void; onHelp: () => void }) {
+function EmptyState({
+  onOpen,
+  onOpenFolder,
+  onHelp,
+  recents,
+  onOpenRecent,
+  onRemoveRecent,
+  onClearRecents,
+}: {
+  onOpen: () => void;
+  onOpenFolder: () => void;
+  onHelp: () => void;
+  recents: RecentItem[];
+  onOpenRecent: (item: RecentItem) => void;
+  onRemoveRecent: (path: string) => void;
+  onClearRecents: () => void;
+}) {
   const { t } = useI18n();
+  const isMac = isMacPlatform();
   return (
     <div className="empty-state">
       <div className="title">{t("app.emptyTitle")}</div>
@@ -322,9 +400,13 @@ function EmptyState({ onOpen, onOpenFolder, onHelp }: { onOpen: () => void; onOp
           </svg>
           <span className="empty-action-label">{t("app.openFile")}</span>
           <span className="empty-action-shortcut" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
-            </svg>
+            {isMac ? (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
+              </svg>
+            ) : (
+              <span className="shortcut-modifier">Ctrl</span>
+            )}
             <span className="shortcut-letter">O</span>
           </span>
         </button>
@@ -334,12 +416,20 @@ function EmptyState({ onOpen, onOpenFolder, onHelp }: { onOpen: () => void; onOp
           </svg>
           <span className="empty-action-label">{t("app.openFolder")}</span>
           <span className="empty-action-shortcut" aria-hidden="true">
-            <svg className="shortcut-key-shift" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 4L4 12h6v8h4v-8h6z" />
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
-            </svg>
+            {isMac ? (
+              <svg className="shortcut-key-shift" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 4L4 12h6v8h4v-8h6z" />
+              </svg>
+            ) : (
+              <span className="shortcut-modifier">Shift</span>
+            )}
+            {isMac ? (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
+              </svg>
+            ) : (
+              <span className="shortcut-modifier">Ctrl</span>
+            )}
             <span className="shortcut-letter">O</span>
           </span>
         </button>
@@ -350,6 +440,74 @@ function EmptyState({ onOpen, onOpenFolder, onHelp }: { onOpen: () => void; onOp
       <div className="hint" style={{ marginTop: "2rem", fontSize: "0.8rem", opacity: 0.7 }}>
         {t("app.supports")}
       </div>
+      {recents.length > 0 && (
+        <div className="recents">
+          <div className="recents-header">
+            <span className="recents-header-title">{t("app.recent")}</span>
+            <button
+              type="button"
+              className="recents-clear"
+              onClick={onClearRecents}
+              title={t("app.recentClearAll")}
+            >
+              {t("app.recentClearAll")}
+            </button>
+          </div>
+          <ul className="recents-list">
+            {recents.map((item) => {
+              const parentDir = item.path
+                .replace(/[\\/][^\\/]*$/, "")
+                .replace(/\\/g, "/");
+              return (
+                <li key={item.path}>
+                  <button
+                    type="button"
+                    className="recent-item"
+                    onClick={() => onOpenRecent(item)}
+                    title={item.path}
+                  >
+                    <span className="recent-item-icon" aria-hidden="true">
+                      {item.kind === "folder" ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                        </svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                      )}
+                    </span>
+                    <span className="recent-item-body">
+                      <span className="recent-item-name">{item.name}</span>
+                      <span className="recent-item-path">{parentDir}</span>
+                    </span>
+                    <span
+                      className="recent-item-remove"
+                      role="button"
+                      tabIndex={0}
+                      title={t("app.recentRemove")}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveRecent(item.path);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onRemoveRecent(item.path);
+                        }
+                      }}
+                    >
+                      ×
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

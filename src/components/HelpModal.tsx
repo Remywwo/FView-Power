@@ -1,9 +1,20 @@
 import { useEffect } from "react";
 import { useI18n } from "@/hooks/useI18n";
+import { isMacPlatform } from "@/utils/platform";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+}
+
+/**
+ * Renders a keyboard shortcut label that adapts to the host platform.
+ * Mac users see glyphs (⌘, ⇧); everyone else sees text (Ctrl, Shift).
+ * The actual key binding is registered through `Mod+` in useCommands and
+ * is unaffected by what label we render here.
+ */
+function Kbd({ mac, win }: { mac: string; win: string }) {
+  return <kbd>{isMacPlatform() ? mac : win}</kbd>;
 }
 
 export function HelpModal({ open, onClose }: Props) {
@@ -66,12 +77,12 @@ export function HelpModal({ open, onClose }: Props) {
               <tr><th>{t("help.colShortcut")}</th><th>{t("help.colAction")}</th></tr>
             </thead>
             <tbody>
-              <tr><td><kbd>⌘O</kbd></td><td>{t("app.openFile")}</td></tr>
-              <tr><td><kbd>⇧⌘O</kbd></td><td>{t("app.openFolder")}</td></tr>
-              <tr><td><kbd>⌘S</kbd></td><td>{t("app.save")}</td></tr>
-              <tr><td><kbd>⇧⌘S</kbd></td><td>{t("app.saveAs")}</td></tr>
-              <tr><td><kbd>⌘W</kbd></td><td>{t("app.close")}</td></tr>
-              <tr><td><kbd>⌘.</kbd></td><td>{t("app.toggleTheme")}</td></tr>
+              <tr><td><Kbd mac="⌘O" win="Ctrl+O" /></td><td>{t("app.openFile")}</td></tr>
+              <tr><td><Kbd mac="⇧⌘O" win="Ctrl+Shift+O" /></td><td>{t("app.openFolder")}</td></tr>
+              <tr><td><Kbd mac="⌘S" win="Ctrl+S" /></td><td>{t("app.save")}</td></tr>
+              <tr><td><Kbd mac="⇧⌘S" win="Ctrl+Shift+S" /></td><td>{t("app.saveAs")}</td></tr>
+              <tr><td><Kbd mac="⌘W" win="Ctrl+W" /></td><td>{t("app.close")}</td></tr>
+              <tr><td><Kbd mac="⌘." win="Ctrl+." /></td><td>{t("app.toggleTheme")}</td></tr>
               <tr><td><kbd>Esc</kbd></td><td>{t("help.escClose")}</td></tr>
             </tbody>
           </table>
@@ -82,7 +93,7 @@ export function HelpModal({ open, onClose }: Props) {
               <tr><th>{t("help.colShortcut")}</th><th>{t("help.colAction")}</th></tr>
             </thead>
             <tbody>
-              <tr><td><kbd>⌘F</kbd></td><td>{t("help.findInDoc")}</td></tr>
+              <tr><td><Kbd mac="⌘F" win="Ctrl+F" /></td><td>{t("help.findInDoc")}</td></tr>
               <tr><td><kbd>Enter</kbd></td><td>{t("help.nextMatch")}</td></tr>
               <tr><td><kbd>⇧Enter</kbd></td><td>{t("help.prevMatch")}</td></tr>
               <tr><td><kbd>Esc</kbd></td><td>{t("help.closeSearch")}</td></tr>
@@ -98,11 +109,11 @@ export function HelpModal({ open, onClose }: Props) {
               <tr><th>{t("help.colShortcut")}</th><th>{t("help.colAction")}</th></tr>
             </thead>
             <tbody>
-              <tr><td><kbd>⌘G</kbd></td><td>{t("pdf.gotoTitle")}</td></tr>
+              <tr><td><Kbd mac="⌘G" win="Ctrl+G" /></td><td>{t("pdf.gotoTitle")}</td></tr>
               <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>{t("pdf.prevTitle")} / {t("pdf.nextTitle")}</td></tr>
               <tr><td><kbd>PageUp</kbd> / <kbd>PageDown</kbd></td><td>{t("pdf.prevTitle")} / {t("pdf.nextTitle")}</td></tr>
               <tr><td><kbd>↑</kbd> / <kbd>↓</kbd></td><td>{t("help.pdfScroll")}</td></tr>
-              <tr><td><kbd>Shift</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td><td>{t("help.pdfScrollByScreen")}</td></tr>
+              <tr><td><Kbd mac="⇧↑ / ⇧↓" win="Shift+↑ / Shift+↓" /></td><td>{t("help.pdfScrollByScreen")}</td></tr>
               <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>{t("help.pdfFirstLast")}</td></tr>
             </tbody>
           </table>
@@ -114,8 +125,8 @@ export function HelpModal({ open, onClose }: Props) {
               <tr><th>{t("help.colShortcut")}</th><th>{t("help.colAction")}</th></tr>
             </thead>
             <tbody>
-              <tr><td><kbd>⌘⇧Y</kbd></td><td>{t("help.aiSummary")}</td></tr>
-              <tr><td><kbd>⌘⇧E</kbd></td><td>{t("help.aiExplain")}</td></tr>
+              <tr><td><Kbd mac="⌘⇧Y" win="Ctrl+Shift+Y" /></td><td>{t("help.aiSummary")}</td></tr>
+              <tr><td><Kbd mac="⌘⇧E" win="Ctrl+Shift+E" /></td><td>{t("help.aiExplain")}</td></tr>
             </tbody>
           </table>
           <p style={{ color: "var(--md-muted)", fontSize: "0.92em" }}>
