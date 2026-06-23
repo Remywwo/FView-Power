@@ -5,6 +5,7 @@ export type FileKind =
   | "text"
   | "code"
   | "image"
+  | "docx"
   | "unknown";
 
 export interface CodeLanguage {
@@ -53,6 +54,7 @@ const MD_EXTS = new Set(["md", "markdown", "mdx", "mdown"]);
 const PDF_EXTS = new Set(["pdf"]);
 const HTML_EXTS = new Set(["html", "htm", "xhtml"]);
 const TEXT_EXTS = new Set(["txt", "log"]);
+const DOCX_EXTS = new Set(["docx"]);
 
 function getExtension(path: string): string {
   const lastDot = path.lastIndexOf(".");
@@ -84,6 +86,9 @@ export function detectFile(path: string): DetectedFile {
   }
   if (PDF_EXTS.has(ext)) {
     return { kind: "pdf", extension: ext, basename, isEditable: false };
+  }
+  if (DOCX_EXTS.has(ext)) {
+    return { kind: "docx", extension: ext, basename, isEditable: false };
   }
   if (HTML_EXTS.has(ext)) {
     return { kind: "html", extension: ext, basename, language: "html", isEditable: true };

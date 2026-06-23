@@ -134,6 +134,7 @@ export function HelpModal({ open, onClose }: Props) {
               <tr><td>{t("help.textRow")}</td><td><code>.txt</code> <code>.log</code></td><td>✓</td></tr>
               <tr><td>{t("help.pdfRow")}</td><td><code>.pdf</code></td><td>{t("help.pdfEdit")}</td></tr>
               <tr><td>{t("help.imageRow")}</td><td><code>.png</code> <code>.jpg</code> <code>.jpeg</code> <code>.gif</code> <code>.webp</code> <code>.svg</code> <code>.avif</code> <code>.bmp</code> <code>.tiff</code> <code>.ico</code></td><td>{t("help.pdfEdit")}</td></tr>
+              <tr><td>{t("help.docxRow")}</td><td><code>.docx</code></td><td>{t("help.pdfEdit")}</td></tr>
             </tbody>
           </table>
           <p>{t("help.unknownNote")}</p>

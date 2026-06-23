@@ -822,3 +822,94 @@ html, body, #root {
   border-color: var(--md-accent);
 }
 .create-input-actions button:hover { opacity: 0.85; }
+
+/* === DOCX preview === */
+/* docx-preview injects its own <style> tag scoped to `.docx` AND applies
+   inline `style="color: ..."` to runs/paragraphs from the source document.
+   Two obstacles:
+     1) Its injected selectors are higher-specificity than a plain `.docx`
+        (e.g. `.docx-wrapper > section.docx` = 0,2,1 vs our 0,1,0) and are
+        appended after our stylesheet, so the cascade puts them last.
+     2) Inline styles have specificity 1,0,0,0 — unbeatable by class selectors
+        without `!important`.
+   We therefore use a higher-specificity wrapper selector AND `!important` on
+   text colours to guarantee readable output in both themes. */
+.docx-preview-container {
+  color: var(--md-fg);
+  font-family: var(--md-font-family);
+  font-size: var(--md-font-size);
+  line-height: var(--md-line-height);
+}
+
+/* Outer wrapper that docx-preview creates — override its `background: gray`. */
+.docx-preview-container .docx-wrapper {
+  background: var(--md-code-bg) !important;
+  padding: 1rem !important;
+}
+
+/* Page chrome — match `.docx-wrapper > section.docx` (0,2,1) with one more
+   specificity level (0,3,1) and use !important to be safe. */
+.docx-preview-container .docx-wrapper > section.docx {
+  background: var(--md-bg) !important;
+  color: var(--md-fg) !important;
+  border: 1px solid var(--md-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Text colours — !important required to override inline `style="color: …"`
+   that docx-preview copies from the source document's run properties. */
+.docx-preview-container .docx p,
+.docx-preview-container .docx span,
+.docx-preview-container .docx div,
+.docx-preview-container .docx li,
+.docx-preview-container .docx td,
+.docx-preview-container .docx th,
+.docx-preview-container .docx b,
+.docx-preview-container .docx strong,
+.docx-preview-container .docx i,
+.docx-preview-container .docx em,
+.docx-preview-container .docx h1,
+.docx-preview-container .docx h2,
+.docx-preview-container .docx h3,
+.docx-preview-container .docx h4,
+.docx-preview-container .docx h5,
+.docx-preview-container .docx h6 {
+  color: var(--md-fg) !important;
+}
+
+.docx-preview-container .docx a {
+  color: var(--md-link) !important;
+  text-decoration: underline;
+}
+
+.docx-preview-container .docx table {
+  border-color: var(--md-border) !important;
+}
+
+.docx-preview-container .docx table td,
+.docx-preview-container .docx table th {
+  border-color: var(--md-border) !important;
+}
+
+.docx-preview-container .docx blockquote {
+  border-left: 4px solid var(--md-blockquote-border);
+  color: var(--md-muted) !important;
+}
+
+.docx-preview-container .docx code {
+  background: var(--md-code-bg) !important;
+  color: var(--md-fg) !important;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+.docx-preview-container .docx .docx-page-break {
+  border-top: 1px dashed var(--md-border);
+  margin: 1.5rem 0;
+}
+
+/* Dark mode: stronger page-chrome shadow. */
+.dark .docx-preview-container .docx-wrapper > section.docx {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}

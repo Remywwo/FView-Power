@@ -322,7 +322,7 @@ function FileIcon({ name }: { name: string }) {
     md: "#60a5fa", markdown: "#60a5fa", pdf: "#ef4444", html: "#f97316", htm: "#f97316",
     json: "#eab308", js: "#fbbf24", ts: "#3b82f6", tsx: "#3b82f6", jsx: "#fbbf24",
     css: "#a855f7", scss: "#a855f7", png: "#22c55e", jpg: "#22c55e", jpeg: "#22c55e",
-    gif: "#22c55e", svg: "#22c55e", txt: "#9ca3af",
+    gif: "#22c55e", svg: "#22c55e", txt: "#9ca3af", docx: "#2b579a",
   };
   const color = colorMap[ext] || "var(--md-muted)";
   return (

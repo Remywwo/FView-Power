@@ -14,6 +14,7 @@ import { MarkdownPreview } from "@/components/MarkdownPreview";
 import { CodePreview } from "@/components/CodePreview";
 import { HtmlPreview } from "@/components/HtmlPreview";
 import { PdfPreview } from "@/components/PdfPreview";
+import { DocxPreview } from "@/components/DocxPreview";
 import { ImagePreview } from "@/components/ImagePreview";
 import { TextPreview } from "@/components/TextPreview";
 import { SettingsModal } from "@/components/SettingsModal";
@@ -284,6 +285,9 @@ export default function App() {
           )}
           {current && current.kind === "pdf" && (
             <PdfPreview file={current} />
+          )}
+          {current && current.kind === "docx" && (
+            <DocxPreview file={current} />
           )}
           {current && current.kind === "image" && (
             <ImagePreview file={current} />

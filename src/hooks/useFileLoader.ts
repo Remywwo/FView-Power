@@ -48,7 +48,7 @@ function isProbablyBinary(bytes: Uint8Array): boolean {
 async function readAnyFile(path: string): Promise<LoadedFile> {
   const detected: DetectedFile = detectFile(path);
 
-  if (detected.kind === "image" || detected.kind === "pdf" || detected.kind === "unknown") {
+  if (detected.kind === "image" || detected.kind === "pdf" || detected.kind === "docx" || detected.kind === "unknown") {
     const { readFile } = await import("@tauri-apps/plugin-fs");
     const bytes = await readFile(path);
     return {
@@ -107,12 +107,13 @@ export function useFileLoader(): UseFileLoaderApi {
         directory: false,
         title: "Open File",
         filters: [
-          { name: "All Supported", extensions: ["md", "markdown", "pdf", "txt", "html", "htm", "json", "js", "ts", "tsx", "jsx", "py", "rs", "go", "java", "c", "cpp", "css", "scss", "yml", "yaml", "xml", "sh", "bash", "sql", "png", "jpg", "jpeg", "gif", "webp", "svg"] },
+          { name: "All Supported", extensions: ["md", "markdown", "pdf", "txt", "html", "htm", "json", "js", "ts", "tsx", "jsx", "py", "rs", "go", "java", "c", "cpp", "css", "scss", "yml", "yaml", "xml", "sh", "bash", "sql", "png", "jpg", "jpeg", "gif", "webp", "svg", "docx"] },
           { name: "Markdown", extensions: ["md", "markdown"] },
           { name: "PDF", extensions: ["pdf"] },
           { name: "Text", extensions: ["txt", "log"] },
           { name: "Code", extensions: ["json", "js", "ts", "tsx", "jsx", "py", "rs", "go", "java", "c", "cpp", "css", "scss", "yml", "yaml", "xml", "sh", "bash", "sql"] },
           { name: "Image", extensions: ["png", "jpg", "jpeg", "gif", "webp", "svg"] },
+          { name: "Word", extensions: ["docx"] },
         ],
       });
       if (typeof selected === "string") {
