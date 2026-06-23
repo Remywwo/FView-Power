@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-06-23
+
+### Added
+- **Recent files & folders on home screen** — up to 5 most-recently-opened items persisted in `localStorage`
+  - New `useRecents` hook: record on every successful open (dialog, drag-drop, CLI, folder-tree), dedupe by path, evict oldest when cap is exceeded
+  - Hover over any entry to reveal a `×` remove button; "Clear all" at the list bottom
+  - Stale paths (deleted/moved) are auto-removed on click with an error toast
+- **Platform-specific shortcut hints** — `EmptyState` and `HelpModal` detect macOS vs Windows/Linux and display the appropriate modifier key glyphs (`⌘` vs `Ctrl`)
+
+### Changed
+- Home screen subtitle: "A minimal file preview & editor" → "A minimal file previewer" (en) / "极简的文件预览器" (zh)
+- `DocxPreview` container: removed hardcoded `padding: 1rem` (wrapper CSS handles spacing)
+- Docs landing page:
+  - Features cards: removed Chinese fallback text from all 6 cards; `i18n.js` is now the single source of truth
+  - "Preview-first" wording: descriptions and feature card 01 place preview before editing
+  - Fixed malformed nav HTML (unclosed `</div>` tags)
+  - Added missing `alt` attributes to 3 `<img>` tags
+
+### Fixed
+- **CI**: download-link auto-updater rewrite — sed range-based editing kept overstepping into the next platform's `<a>` block, silently replacing the Linux `.deb` URL with the Windows `.exe` URL over multiple releases. Rewritten in Python (unambiguous per-block href replacement) with a post-rewrite validator that aborts the push on any platform/extension mismatch.
+- **Release script**: added platform-link validation step after the version sed; aborts on mismatch with clear remediation hint.
+
 ## [0.5.0] - 2026-06-23
 
 ### Added
