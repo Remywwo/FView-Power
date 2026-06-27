@@ -124,6 +124,7 @@ export const translations = {
       fit: "Fit",
       readOnly: "read-only",
       error: "Image error",
+      clickToEdit: "Click to edit zoom",
     },
     text: {
       readOnly: "read-only",
@@ -327,6 +328,7 @@ export const translations = {
       fit: "适应",
       readOnly: "只读",
       error: "图片出错",
+      clickToEdit: "点击修改缩放",
     },
     text: {
       readOnly: "只读",

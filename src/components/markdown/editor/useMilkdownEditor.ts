@@ -26,6 +26,13 @@ const searchPlugin = $prose(() => new Plugin({
   },
 }));
 
+/**
+ * Disambiguation of external file drops vs internal ProseMirror drags is
+ * handled by DropZone.tsx: when a Tauri `onDragDropEvent` lands on a
+ * `[data-md-editor]` element the drop is NOT forwarded to `handleDropPath`,
+ * so ProseMirror's built-in handlers (image insertion etc.) can process
+ * the drop without the app opening the file.
+ */
 export interface MilkdownHandle {
   setContent: (markdown: string) => void;
   setReadonly: (v: boolean) => void;
