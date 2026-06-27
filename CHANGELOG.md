@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.4] - 2026-06-28
+
+### Fixed
+- **Milkdown code block excess blank space** — empty code blocks rendered with ~778px of bottom padding, full blocks had too much vertical padding. Three root causes fixed:
+  - `CodeMirror` writes `style.minHeight` inline on `.cm-gutters` (specificity 1,0,0,0); project overrides with `min-height: 0 !important`
+  - `.milkdown-code-block .tools` was a flex container with opacity:0 buttons that still occupied ~28px of layout; switched to `position: absolute` so buttons float over the block without contributing height
+  - Global `.cm-editor .cm-scroller { padding-bottom: calc(100vh - 22px) }` (meant for the standalone `CodePreview`) leaked into the milkdown-embedded cm-scroller; scoped the rule to `[data-cm-code-preview]` and added defensive `padding-bottom: 0 !important` on the milkdown side
+- **Milkdown code block padding** — tightened from `8px 20px 20px` to `4px 12px`
+
+### Changed
+- **Milkdown BlockEdit: hide drag handle** — keep only the `/` slash shortcut. The block prosemirror plugin still runs (mouse/drag event listeners stay bound) but its overhead is negligible; visual drag handle is removed per user preference
+
+## [0.7.3] - 2026-06-27
+
+### Fixed
+- **Toolbar left padding on non-macOS** — Windows/Linux have window controls on the right side, so the 85px left padding that accommodates macOS traffic lights was unnecessary. Use `isMacPlatform()` to conditionally apply the padding via inline style
+
 ## [0.7.2] - 2026-06-27
 
 ### Fixed
