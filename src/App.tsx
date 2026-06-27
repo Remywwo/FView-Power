@@ -27,13 +27,19 @@ import { ToastHost } from "@/components/ToastHost";
 import { builtInExtensions } from "@/plugins/extensions";
 
 export default function App() {
-  const loader = useFileLoader();
+  // Forward-declared ref so the file loader can surface toasts via the
+  // host even though the host object is built a few lines below.
+  const hostRef = useRef<ConcreteHostAPI | null>(null);
   const folder = useFolder();
   const theme = useTheme();
   const i18n = useI18n();
   const settingsCtx = useSettings();
   const commandCtx = useCommandContext();
   const { t } = i18n;
+  const loader = useFileLoader({
+    notify: (msg, level) => hostRef.current?.notify(msg, level),
+    t,
+  });
   const { current, setContent, loadFromPath, error } = loader;
   const { isDark } = theme;
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -97,6 +103,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
+  hostRef.current = host;
 
   // Unified drop handler: detect file vs folder
   const handleDropPath = useCallback(async (path: string) => {

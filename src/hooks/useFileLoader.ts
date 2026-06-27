@@ -18,6 +18,14 @@ export interface LoadedFile {
   dirty: boolean;
 }
 
+type NotifyLevel = "info" | "warn" | "error";
+
+/**
+ * Minimal i18n signature the loader needs. Mirrors `useI18n().t` but is
+ * decoupled from React so this hook stays testable in isolation.
+ */
+type Translator = (key: string) => string;
+
 interface UseFileLoaderApi {
   current: LoadedFile | null;
   loading: boolean;
@@ -79,12 +87,27 @@ async function readAnyFile(path: string): Promise<LoadedFile> {
   };
 }
 
-export function useFileLoader(): UseFileLoaderApi {
+export function useFileLoader(opts?: {
+  /**
+   * Optional toast/notification sink. Called when Save As produces a copy.
+   * Kept optional so the hook stays usable in tests and non-React contexts.
+   */
+  notify?: (message: string, level?: NotifyLevel) => void;
+  /**
+   * Optional i18n translator. Defaults to a passthrough that returns the
+   * key itself when no translator is wired in.
+   */
+  t?: Translator;
+}): UseFileLoaderApi {
   const [current, setCurrent] = useState<LoadedFile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const currentRef = useRef<LoadedFile | null>(null);
   currentRef.current = current;
+  const notifyRef = useRef(opts?.notify);
+  notifyRef.current = opts?.notify;
+  const tRef = useRef<Translator>(opts?.t ?? ((key: string) => key));
+  tRef.current = opts?.t ?? tRef.current;
 
   const loadFromPath = useCallback(async (path: string) => {
     try {
@@ -143,9 +166,17 @@ export function useFileLoader(): UseFileLoaderApi {
       });
       if (!target) return;
       await writeTextFile(target, cur.content);
-      setCurrent({ ...cur, path: target, name: target.split(/[\\/]/).pop() || cur.name, dirty: false });
+      // Save As produces a copy. Keep the originally opened file as the
+      // active buffer (path/name unchanged, dirty stays true if edits are
+      // still unsaved) so the user keeps editing the source they opened.
+      const newName = target.split(/[\\/]/).pop() || cur.name;
+      notifyRef.current?.(
+        tRef.current("app.savedAsCopy").replace("{name}", newName),
+        "info",
+      );
     } catch (e: any) {
       setError(e?.message || String(e));
+      notifyRef.current?.(e?.message || String(e), "error");
     }
   }, []);
 

@@ -29,6 +29,7 @@ export const translations = {
       loading: "Loading…",
       docxLoading: "Loading DOCX…",
       docxError: "DOCX error",
+      savedAsCopy: "Saved copy to {name}",
     },
     settings: {
       title: "Settings",
@@ -231,6 +232,7 @@ export const translations = {
       loading: "加载中…",
       docxLoading: "正在加载 DOCX…",
       docxError: "DOCX 出错了",
+      savedAsCopy: "已另存为 {name}",
     },
     settings: {
       title: "设置",
