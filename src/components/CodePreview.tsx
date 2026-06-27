@@ -98,7 +98,7 @@ export function CodePreview({ file, setContent, isDark, readOnly = false, onSele
   } as CSSProperties;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" data-cm-code-preview="">
       <div className="toolbar">
         {file.language && <span className="file-info">{file.language}</span>}
         {readOnly && (
