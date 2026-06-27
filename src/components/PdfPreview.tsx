@@ -17,6 +17,12 @@ pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export function PdfPreview({ file }: { file: LoadedFile }) {
   const { t } = useI18n();
+
+  // Tell the AI panel (rendered in a portal) to sit higher above the floating toolbar
+  useEffect(() => {
+    document.documentElement.style.setProperty("--ai-panel-bottom", "100px");
+    return () => { document.documentElement.style.removeProperty("--ai-panel-bottom"); };
+  }, []);
   const [pages, setPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1.4);
@@ -193,18 +199,56 @@ export function PdfPreview({ file }: { file: LoadedFile }) {
   const goNext = () => setCurrentPage((p) => Math.min(pages, p + 1));
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="toolbar">
-        <button onClick={goPrev} disabled={currentPage <= 1} title={t("pdf.prevTitle")}>{t("pdf.prev")}</button>
-        <span
-          className="file-info"
-          style={{ minWidth: "4.5em", textAlign: "center" }}
+    <div className="h-full relative">
+      <div className="h-full relative" style={{ background: "var(--md-code-bg)" }}>
+        <div
+          ref={canvasScrollRef}
+          className="h-full overflow-auto" style={{ paddingBottom: 72 }}
+          onMouseEnter={() => { hoveredAreaRef.current = "canvas"; }}
+          onMouseLeave={() => { if (hoveredAreaRef.current === "canvas") hoveredAreaRef.current = null; }}
         >
-          {pages > 0 ? `${currentPage} / ${pages}` : t("pdf.gotoPlaceholder")}
-        </span>
+        {loading && <div className="empty-state"><div>{t("pdf.loading")}</div></div>}
+        {error && <div className="empty-state"><div className="title" style={{ color: "#ef4444" }}>{t("pdf.error")}</div><div className="hint">{error}</div></div>}
+          {!loading && !error && (
+            <div className="flex justify-center py-6">
+              <canvas ref={canvasRef} className="shadow-lg" style={{ background: "white" }} />
+            </div>
+          )}
+        </div>
+        <PdfOutlineDrawer
+          ref={outlineScrollRef}
+          outline={outline}
+          loading={outlineLoading}
+          currentPage={currentPage}
+          onJump={setCurrentPage}
+        />
+      </div>
+
+      {/* Floating toolbar at bottom */}
+      <div
+        className="toolbar"
+        style={{
+          position: "absolute",
+          bottom: 16,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 10,
+          borderRadius: 8,
+          boxShadow: "0 2px 16px rgba(0,0,0,0.35)",
+          width: "fit-content",
+          maxWidth: "90vw",
+          background: "var(--md-bg)",
+          padding: "0.5rem 1rem",
+          height: "auto",
+          minHeight: "unset",
+          borderBottom: "none",
+        }}
+      >
+        <button onClick={goPrev} disabled={currentPage <= 1} title={t("pdf.prevTitle")}>{t("pdf.prev")}</button>
+        {pages > 0 ? `${currentPage} / ${pages}` : t("pdf.gotoPlaceholder")}
         <button onClick={goNext} disabled={currentPage >= pages} title={t("pdf.nextTitle")}>{t("pdf.next")}</button>
         <span className="divider" />
-        <span className="file-info">{t("pdf.goTo")}</span>
+        {t("pdf.goTo")}
         <input
           ref={jumpInputRef}
           type="number"
@@ -239,31 +283,8 @@ export function PdfPreview({ file }: { file: LoadedFile }) {
         />
         <span className="divider" />
         <button onClick={() => setScale((s) => Math.max(0.5, +(s - 0.2).toFixed(2)))}>−</button>
-        <span className="file-info">{Math.round(scale * 100)}%</span>
+        {Math.round(scale * 100)}%
         <button onClick={() => setScale((s) => Math.min(4, +(s + 0.2).toFixed(2)))}>+</button>
-      </div>
-      <div className="flex-1 min-h-0 relative" style={{ background: "var(--md-code-bg)" }}>
-        <div
-          ref={canvasScrollRef}
-          className="h-full overflow-auto"
-          onMouseEnter={() => { hoveredAreaRef.current = "canvas"; }}
-          onMouseLeave={() => { if (hoveredAreaRef.current === "canvas") hoveredAreaRef.current = null; }}
-        >
-        {loading && <div className="empty-state"><div>{t("pdf.loading")}</div></div>}
-        {error && <div className="empty-state"><div className="title" style={{ color: "#ef4444" }}>{t("pdf.error")}</div><div className="hint">{error}</div></div>}
-          {!loading && !error && (
-            <div className="flex justify-center py-6">
-              <canvas ref={canvasRef} className="shadow-lg" style={{ background: "white" }} />
-            </div>
-          )}
-        </div>
-        <PdfOutlineDrawer
-          ref={outlineScrollRef}
-          outline={outline}
-          loading={outlineLoading}
-          currentPage={currentPage}
-          onJump={setCurrentPage}
-        />
       </div>
     </div>
   );

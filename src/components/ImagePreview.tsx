@@ -3,6 +3,9 @@ import type { LoadedFile } from "@/hooks/useFileLoader";
 import { useI18n } from "@/hooks/useI18n";
 import { mimeForImage } from "@/utils/fileDetector";
 
+const MAX_SCALE = 9.99;
+const SCALE_STEP = 0.05;
+
 export function ImagePreview({ file }: { file: LoadedFile }) {
   const { t } = useI18n();
   const [scale, setScale] = useState(1);
@@ -110,9 +113,6 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
     }
   }, [fitRatio]);
 
-  const MAX_SCALE = 9.99;
-  const SCALE_STEP = 0.05;
-
   const zoomIn = useCallback(() => adjustScale((s) => Math.min(MAX_SCALE, +(s + SCALE_STEP).toFixed(4))), [adjustScale]);
   const zoomOut = useCallback(() => adjustScale((s) => Math.max(0.01, +(s - SCALE_STEP).toFixed(4))), [adjustScale]);
 
@@ -188,6 +188,7 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
           position: "absolute",
           inset: 0,
           overflow: "auto",
+          paddingBottom: 72,
           cursor: overflowing ? (dragging ? "grabbing" : "grab") : "default",
         }}
         onMouseDown={onMouseDown}
@@ -251,6 +252,12 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
           zIndex: 10,
           borderRadius: 8,
           boxShadow: "0 2px 16px rgba(0,0,0,0.35)",
+          width: 220,
+          background: "var(--md-bg)",
+          padding: "0.5rem 1rem",
+          height: "auto",
+          minHeight: "unset",
+          borderBottom: "none",
         }}
       >
         <button onClick={zoomOut} title="Ctrl+−">−</button>
@@ -296,8 +303,6 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
         </span>
         <button onClick={zoomIn} title="Ctrl++">+</button>
         <button onClick={resetScale} title="Ctrl+0">{t("image.reset")}</button>
-        <div className="spacer" />
-        <span className="file-info">{file.name}</span>
       </div>
     </div>
   );

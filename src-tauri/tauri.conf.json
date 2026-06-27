@@ -10,21 +10,8 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [
-      {
-        "title": "FView Power",
-        "width": 1440,
-        "height": 900,
-        "minWidth": 600,
-        "minHeight": 400,
-        "resizable": true,
-        "fullscreen": false,
-        "center": true,
-        "decorations": true,
-        "transparent": false,
-        "titleBarStyle": "Visible"
-      }
-    ],
+    "macOSPrivateApi": true,
+    "windows": [],
     "security": {
       "csp": null,
       "assetProtocol": {

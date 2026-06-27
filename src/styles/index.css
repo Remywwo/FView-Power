@@ -29,7 +29,15 @@
   --md-accent: #818cf8;
 }
 
-html, body, #root {
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+#root {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -39,9 +47,6 @@ html, body, #root {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
-}
-
-#root {
   display: flex;
   flex-direction: column;
 }
@@ -723,18 +728,31 @@ html, body, #root {
   padding-right: 0.1em;
 }
 
-/* Toolbar */
+/* macOS Overlay mode: native traffic lights repositioned by Rust */
+#root { padding-top: 0; }
+
+/* ── Toolbar ────────────────────────────────────────────────────── */
+
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--md-border);
-  background: var(--md-bg);
+  gap: 0.75rem;
+  padding: 0 1rem;
   font-size: 14px;
-  min-height: 48px;
-  height: 48px;
+  min-height: 44px;
+  height: 44px;
   flex-shrink: 0;
+}
+
+/* Main app toolbar — sits in titlebar area with traffic lights */
+.app-toolbar {
+  padding-left: 85px;
+  border-bottom: 1px solid var(--md-border);
+  background: color-mix(in srgb, var(--md-bg) 75%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 100;
 }
 .toolbar button {
   background: transparent;
@@ -745,6 +763,9 @@ html, body, #root {
   cursor: pointer;
   font-size: inherit;
   transition: background 0.1s, border-color 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .toolbar button:hover { background: var(--md-code-bg); border-color: var(--md-border); }
 .toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }

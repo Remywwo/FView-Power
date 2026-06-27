@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import type { ExtensionManifest, ExtensionContext } from "@/plugins/types";
 import type { ConcreteHostAPI } from "@/plugins/host";
 import { useRegisterCommand } from "@/hooks/useCommands";
@@ -22,7 +23,6 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(false);
   const [initialQuestion, setInitialQuestion] = useState<string | null>(null);
-  const [compact, setCompact] = useState(false);
   const [clearKey, setClearKey] = useState(0);
   const [focusKey, setFocusKey] = useState(0);
   const pendingInputRef = useRef<string | null>(null);
@@ -33,7 +33,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
 
   const close = useCallback(() => {
     setVisible(false);
-    setTimeout(() => { setOpen(false); setCompact(false); }, 350);
+    setTimeout(() => { setOpen(false); }, 350);
   }, []);
 
   const isSupported = useCallback(() => {
@@ -43,15 +43,14 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
   }, [host]);
 
   const openPanel = useCallback(() => {
-    if (settings.aiProvider === "none" || !settings.aiApiKey) {
-      host.notify(host.i18n.t("ai.noApiKey"), "warn");
-      return;
-    }
     if (!isSupported()) {
       host.notify(host.i18n.t("ai.unsupportedType"), "warn");
       return;
     }
-    setCompact(false);
+    if (settings.aiProvider === "none" || !settings.aiApiKey) {
+      host.notify(host.i18n.t("ai.noApiKey"), "warn");
+      return;
+    }
     setOpen(true);
     setFocusKey((k) => k + 1);
     requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
@@ -59,37 +58,21 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
 
   const toggle = useCallback(() => {
     if (open) { close(); return; }
-    if (settings.aiProvider === "none" || !settings.aiApiKey) {
-      host.notify(host.i18n.t("ai.noApiKey"), "warn");
-      return;
-    }
-    if (!isSupported()) {
-      host.notify(host.i18n.t("ai.unsupportedType"), "warn");
-      return;
-    }
     openPanel();
-  }, [open, settings, isSupported, openPanel, close, host]);
+  }, [open, openPanel, close]);
 
-  // When a PDF is opened, show the panel in compact mode by default.
+  // Track file changes — close panel when switching to unsupported types.
   useEffect(() => {
     const check = () => {
       const f = host.file.get();
       if (!f) { setClearKey((k) => k + 1); return; }
-      // Only support Markdown and PDF.
       if (f.kind !== "markdown" && f.kind !== "pdf") {
         if (open) close();
-        return;
-      }
-      if (f.kind === "pdf" && settings.aiProvider !== "none" && settings.aiApiKey) {
-        setInitialQuestion(null);
-        setCompact(true);
-        setOpen(true);
-        requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
       }
     };
     const unsub = host.file.subscribe(check);
     return unsub;
-  }, [host, settings, open, close]);
+  }, [host, open, close]);
 
   // Module-level trigger so external code can open the panel with a question.
   useEffect(() => {
@@ -103,7 +86,6 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
         // Store the pending input separately for ChatPanel to pick up.
         pendingInputRef.current = q;
       }
-      setCompact(false);
       setOpen(true);
       setFocusKey((k) => k + 1);
       requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
@@ -144,6 +126,7 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
     <>
       <button
         type="button"
+        data-tauri-drag-region="no-drag"
         onClick={toggle}
         title={host.i18n.t("ai.openPanel")}
         style={{ fontSize: 13 }}
@@ -151,26 +134,30 @@ function AIPanelSlot({ ctx }: { ctx: ExtensionContext }) {
         ✨ AI
       </button>
 
-      {/* Panel — always mounted, hidden via CSS when closed so messages survive toggle. */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 12,
-          left: "50%",
-          width: 560,
-          maxWidth: "calc(100vw - 48px)",
-          zIndex: open ? 50 : -1,
-          borderRadius: 12,
-          boxShadow: visible ? "0 4px 24px rgba(0,0,0,0.14)" : "none",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(100%)",
-          transition: "opacity 0.3s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease",
-          overflow: "hidden",
-          pointerEvents: open ? "auto" : "none",
-        }}
-      >
-        <ChatPanel provider={getProvider} onClose={close} compact={compact} initialQuestion={initialQuestion} clearKey={clearKey} pendingInput={pendingInputRef.current} focusKey={focusKey} />
-      </div>
+      {/* Panel rendered via portal to avoid backdrop-filter containing block on toolbar */}
+      {open && createPortal(
+        <div
+          style={{
+            position: "fixed",
+            bottom: "var(--ai-panel-bottom, 12px)",
+            left: "50%",
+            width: 560,
+            maxWidth: "calc(100vw - 48px)",
+            zIndex: open ? 50 : -1,
+            background: "var(--md-bg)",
+            borderRadius: 12,
+            boxShadow: visible ? "0 4px 24px rgba(0,0,0,0.14)" : "none",
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(100%)",
+            transition: "opacity 0.3s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease",
+            overflow: "hidden",
+            pointerEvents: open ? "auto" : "none",
+          }}
+        >
+          <ChatPanel provider={getProvider} onClose={close} initialQuestion={initialQuestion} clearKey={clearKey} pendingInput={pendingInputRef.current} focusKey={focusKey} />
+        </div>,
+        document.body,
+      )}
     </>
   );
 }

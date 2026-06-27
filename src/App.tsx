@@ -214,7 +214,7 @@ export default function App() {
   return (
     <PluginProvider host={host} extensions={extensions}>
       <div className="flex flex-col h-full">
-        <div className="toolbar">
+        <div className="toolbar app-toolbar" data-tauri-drag-region>
         <div className="open-menu" ref={openMenuRef}>
           <button
             onClick={() => setOpenMenuOpen((v) => !v)}
