@@ -1,10 +1,46 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { LoadedFile } from "@/hooks/useFileLoader";
 import { useI18n } from "@/hooks/useI18n";
 import { mimeForImage } from "@/utils/fileDetector";
 
 const MAX_SCALE = 9.99;
 const SCALE_STEP = 0.05;
+const SVG_DEFAULT_SIZE = { w: 300, h: 150 };
+
+/** Decode UTF-8 bytes into a string, stripping a leading BOM if present. */
+function utf8Decode(bytes: Uint8Array): string {
+  let text = new TextDecoder("utf-8").decode(bytes);
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+  return text;
+}
+
+/**
+ * Pull the nominal size out of an SVG document by looking at its root
+ * <svg> element's width/height attributes, falling back to viewBox.
+ * Returns null when neither is usable; callers should fall back to a
+ * sensible default in that case.
+ */
+function parseSvgNominalSize(text: string): { w: number; h: number } | null {
+  if (typeof DOMParser === "undefined") return null;
+  try {
+    const doc = new DOMParser().parseFromString(text, "image/svg+xml");
+    const root = doc.documentElement;
+    if (!root || root.nodeName.toLowerCase() !== "svg") return null;
+    const w = parseFloat(root.getAttribute("width") ?? "");
+    const h = parseFloat(root.getAttribute("height") ?? "");
+    if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) return { w, h };
+    const vb = root.getAttribute("viewBox");
+    if (vb) {
+      const parts = vb.trim().split(/[\s,]+/).map(parseFloat);
+      if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+        return { w: parts[2], h: parts[3] };
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 export function ImagePreview({ file }: { file: LoadedFile }) {
   const { t } = useI18n();
@@ -21,6 +57,29 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
   const dragRef = useRef({ active: false, startX: 0, startY: 0, scrollX: 0, scrollY: 0 });
   const userAdjustedRef = useRef(false);
 
+  const isSvg = file.extension.toLowerCase() === "svg";
+  const svgWrapId = `svg-wrap-${useId()}`;
+
+  // SVG path: decode the bytes once and extract nominal dimensions up
+  // front. We inline the SVG into the DOM (dangerouslySetInnerHTML)
+  // rather than handing it to an <img> tag because Tauri's WKWebView
+  // backend cannot reliably decode image/svg+xml through either
+  // blob: or data: URLs — the <img> fires onError and renders the
+  // broken-image icon. Inline SVG avoids URL/mime negotiation entirely.
+  const svgText = useMemo(() => {
+    if (!isSvg || !file.binaryBytes) return null;
+    try {
+      return utf8Decode(file.binaryBytes as Uint8Array);
+    } catch {
+      return null;
+    }
+  }, [isSvg, file.binaryBytes]);
+
+  const svgSize = useMemo(
+    () => (svgText ? parseSvgNominalSize(svgText) : null),
+    [svgText],
+  );
+
   // Track preview area size via ResizeObserver
   useEffect(() => {
     const el = rootRef.current;
@@ -32,13 +91,63 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
     return () => ro.disconnect();
   }, []);
 
+  // Reset on file change
+  useEffect(() => {
+    setNatural(null);
+    setSrc(null);
+    setError(null);
+    prevFitRef.current = null;
+    userAdjustedRef.current = false;
+  }, [file.path]);
+
+  // Generate blob URL for non-SVG images
+  useEffect(() => {
+    if (isSvg) return;
+    if (!file.binaryBytes) {
+      setError("No image data");
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const mime = mimeForImage(file.extension);
+        const blob = new Blob([file.binaryBytes as BlobPart], { type: mime });
+        const url = URL.createObjectURL(blob);
+        if (cancelled) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+        setSrc(url);
+        setError(null);
+      } catch (e: any) {
+        setError(e?.message || String(e));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [file.path, file.binaryBytes, isSvg]);
+
+  // Cleanup blob URL on src change / unmount
+  useEffect(() => {
+    return () => {
+      if (src) URL.revokeObjectURL(src);
+    };
+  }, [src]);
+
+  // For SVG path we already know the nominal size, so set natural
+  // eagerly. For raster images natural arrives via <img onLoad>.
+  useEffect(() => {
+    if (isSvg) setNatural(svgSize ?? SVG_DEFAULT_SIZE);
+  }, [isSvg, svgSize]);
+
   // fitRatio = scale needed to fit within the preview area (capped at 1)
   const fitRatio = useMemo(() => {
     if (!natural || viewSize.w <= 0 || viewSize.h <= 0) return null;
+    if (natural.w <= 0 || natural.h <= 0) return null;
     return Math.min(1, viewSize.w / natural.w, viewSize.h / natural.h);
   }, [natural, viewSize]);
 
-  // When fitRatio becomes available, set scale to it
+  // When fitRatio becomes available, set scale to it (unless user
+  // already adjusted).
   const prevFitRef = useRef<number | null>(null);
   useEffect(() => {
     if (fitRatio === null) return;
@@ -51,44 +160,8 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
     prevFitRef.current = fitRatio;
   }, [fitRatio]);
 
-  // Reset on file change
-  useEffect(() => {
-    setNatural(null);
-    setError(null);
-    prevFitRef.current = null;
-    userAdjustedRef.current = false;
-  }, [file.path]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        if (!file.binaryBytes) {
-          setError("No image data");
-          return;
-        }
-        const mime = mimeForImage(file.extension);
-        const blob = new Blob([file.binaryBytes as BlobPart], { type: mime });
-        const url = URL.createObjectURL(blob);
-        if (cancelled) {
-          URL.revokeObjectURL(url);
-          return;
-        }
-        setSrc(url);
-      } catch (e: any) {
-        setError(e?.message || String(e));
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [file.path, file.binaryBytes]);
-
-  useEffect(() => {
-    return () => {
-      if (src) URL.revokeObjectURL(src);
-    };
-  }, [src]);
-
-  // Display dimensions: natural * scale
+  // Display dimensions: natural * scale (kept for the <img> path; the
+  // SVG path uses inline-block + transform on the wrapper).
   const dims = useMemo(() => {
     if (!natural) return null;
     return {
@@ -179,6 +252,9 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
     setDragging(false);
   }, []);
 
+  const showSvg = isSvg && svgText && !error;
+  const showImg = !isSvg && src && !error;
+
   return (
     <div ref={rootRef} className="h-full relative" style={{ background: "var(--md-code-bg)" }}>
       {/* Scroll container fills the entire preview area */}
@@ -202,7 +278,39 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
             <div className="hint">{error}</div>
           </div>
         )}
-        {src && !error && (
+
+        {showSvg && (
+          <div
+            style={{
+              minWidth: "100%",
+              minHeight: "100%",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 16,
+              boxSizing: "border-box",
+            }}
+          >
+            <div
+              style={{
+                width: dims?.w ?? SVG_DEFAULT_SIZE.w,
+                height: dims?.h ?? SVG_DEFAULT_SIZE.h,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <style>{`#${svgWrapId} > svg { width: 100%; height: 100%; display: block; }`}</style>
+              <div
+                id={svgWrapId}
+                style={{ width: "100%", height: "100%", display: "flex" }}
+                dangerouslySetInnerHTML={{ __html: svgText ?? "" }}
+              />
+            </div>
+          </div>
+        )}
+
+        {showImg && (
           <div
             style={{
               minWidth: "100%",
@@ -217,6 +325,10 @@ export function ImagePreview({ file }: { file: LoadedFile }) {
               alt={file.name}
               onLoad={(e) => {
                 setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight });
+                setError(null);
+              }}
+              onError={() => {
+                setError(`Image failed to load: ${file.name}`);
               }}
               style={
                 dims

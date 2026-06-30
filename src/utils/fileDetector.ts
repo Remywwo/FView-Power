@@ -21,7 +21,7 @@ export const CODE_LANGUAGES: CodeLanguage[] = [
   { id: "rust", label: "Rust", extensions: ["rs"] },
   { id: "json", label: "JSON", extensions: ["json", "jsonc"] },
   { id: "css", label: "CSS", extensions: ["css", "scss", "sass", "less"] },
-  { id: "html", label: "HTML", extensions: ["html", "htm", "xml", "svg", "vue", "svelte"] },
+  { id: "html", label: "HTML", extensions: ["html", "htm", "xml", "vue", "svelte"] },
   { id: "yaml", label: "YAML", extensions: ["yml", "yaml"] },
   { id: "shell", label: "Shell", extensions: ["sh", "bash", "zsh", "fish"] },
   { id: "sql", label: "SQL", extensions: ["sql"] },
