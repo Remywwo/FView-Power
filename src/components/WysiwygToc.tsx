@@ -17,11 +17,10 @@ export function WysiwygToc({ container, hidden }: { container: HTMLElement | nul
   useEffect(() => {
     if (!container) return;
     const scan = () => {
-      // TipTap renders headings inside `.md-prose`. The legacy
-      // `.markdown-body` selector is kept for backward compatibility
-      // with anyone embedding the component against an older preview.
+      // Lexical renders headings inside `.lexical-editor`. Legacy selectors
+      // are kept for older preview surfaces.
       const hs = container.querySelectorAll<HTMLElement>(
-        ".milkdown h1, .milkdown h2, .milkdown h3, .milkdown h4, .milkdown h5, .milkdown h6"
+        ".lexical-editor h1, .lexical-editor h2, .lexical-editor h3, .lexical-editor h4, .lexical-editor h5, .lexical-editor h6, .milkdown h1, .milkdown h2, .milkdown h3, .milkdown h4, .milkdown h5, .milkdown h6"
       );
       setHeadings(
         Array.from(hs).map((el) => ({
@@ -48,7 +47,7 @@ export function WysiwygToc({ container, hidden }: { container: HTMLElement | nul
   };
 
   const scrollTo = (el: HTMLElement) => {
-    // TipTap editor container exposes `data-md-preview` for this
+    // The markdown editor container exposes `data-md-preview` for this
     // exact purpose. Fall back to legacy `.bytemd-preview` if present.
     const scrollParent =
       (container?.querySelector("[data-md-preview]") as HTMLElement | null) ??

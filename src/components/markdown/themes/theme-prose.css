@@ -1,10 +1,9 @@
-/* ── TipTap ProseMirror editorial styles ─────────────────────────────
+/* ── Lexical editorial styles ────────────────────────────────────────
  *
  * Architecture
  * ───────────
  * .md-prose-root       — outer scroll container (MarkdownEditor.tsx)
- *  └── .ProseMirror    — TipTap's editable surface
- *       └── .md-prose  — content wrapper applied via editorProps.attributes
+ *  └── .lexical-editor — Lexical editable surface and prose wrapper
  *
  * The 33 theme CSS files in public/themes/*.min.css set the GFM
  * element palette. This file owns the layout, sizing, scroll
@@ -21,24 +20,25 @@
   height: 100%;
   width: 100%;
   background: var(--md-code-bg);
+  overflow: auto;
   scrollbar-gutter: stable;
   scroll-behavior: smooth;
 }
 
-/* ── ProseMirror surface ──────────────────────────────────────────── */
+/* ── Lexical surface ──────────────────────────────────────────────── */
 
-.ProseMirror {
+.lexical-editor {
   outline: none;
   min-height: 100%;
   caret-color: var(--md-accent);
   transition: caret-color 0.2s;
 }
 
-.ProseMirror:focus {
+.lexical-editor:focus {
   caret-color: var(--md-accent);
 }
 
-.ProseMirror > * + * {
+.lexical-editor > * + * {
   margin-top: 0;
 }
 
@@ -388,28 +388,10 @@
 
 /* ── Selection (editor) — accent tint ─────────────────────────────── */
 
-.ProseMirror ::selection,
-.ProseMirror ::-moz-selection {
+.lexical-editor ::selection,
+.lexical-editor ::-moz-selection {
   background: color-mix(in srgb, var(--md-accent) 20%, transparent);
   color: inherit;
-}
-
-/* ── Placeholder ──────────────────────────────────────────────────── */
-
-.ProseMirror p.is-editor-empty:first-child::before {
-  color: var(--md-muted);
-  content: attr(data-placeholder);
-  float: left;
-  pointer-events: none;
-  height: 0;
-  opacity: 0.5;
-  font-style: italic;
-}
-
-/* ── Cursor blink colour ──────────────────────────────────────────── */
-
-.ProseMirror-focused .ProseMirror-gapcursor {
-  border-left-color: var(--md-accent);
 }
 
 /* ── Focus ring — subtle ──────────────────────────────────────────── */

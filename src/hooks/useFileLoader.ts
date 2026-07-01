@@ -4,6 +4,7 @@ import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialo
 import { readTextFile, writeTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { detectFile, type DetectedFile, type FileKind } from "@/utils/fileDetector";
 import { useRegisterCommand } from "@/hooks/useCommands";
+import { isTauriRuntime } from "@/utils/platform";
 
 export interface LoadedFile {
   path: string;
@@ -210,6 +211,7 @@ export function useFileLoader(opts?: {
 
   // CLI args: read first positional file argument on startup
   useEffect(() => {
+    if (!isTauriRuntime()) return;
     (async () => {
       try {
         const cliFile = await invoke<string | null>("get_cli_file");

@@ -1,126 +1,161 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
-import type { EditorView } from "@milkdown/kit/prose/view";
-import type { Node as PMNode } from "@milkdown/kit/prose/model";
-import { TextSelection } from "prosemirror-state";
-import { Decoration, DecorationSet } from "prosemirror-view";
-
-const DEBUG = true;
-const log = (...args: unknown[]) => DEBUG && console.log("[search]", ...args);
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { LexicalEditor } from "lexical";
 
 interface Match {
-  from: number;
-  to: number;
+  node: Text;
+  start: number;
+  end: number;
 }
 
-function findMatches(view: EditorView, term: string): Match[] {
-  const results: Match[] = [];
-  if (!term) return results;
+interface HighlightLike {
+  add: (range: Range) => void;
+}
 
-  const lower = term.toLowerCase();
-  const { doc } = view.state;
+interface HighlightRegistryLike {
+  set: (name: string, highlight: HighlightLike) => void;
+  delete: (name: string) => void;
+}
 
-  doc.descendants((node, pos) => {
-    if (!node.isText) return;
-    const text = node.text ?? "";
-    let idx = text.toLowerCase().indexOf(lower);
-    while (idx !== -1) {
-      results.push({ from: pos + idx, to: pos + idx + term.length });
-      idx = text.toLowerCase().indexOf(lower, idx + 1);
+const HIGHLIGHT_NAME = "fview-markdown-search";
+const ACTIVE_HIGHLIGHT_NAME = "fview-markdown-search-active";
+
+function getHighlightCtor(): (new () => HighlightLike) | null {
+  return (window as unknown as { Highlight?: new () => HighlightLike }).Highlight ?? null;
+}
+
+function getHighlightRegistry(): HighlightRegistryLike | null {
+  return (CSS as unknown as { highlights?: HighlightRegistryLike }).highlights ?? null;
+}
+
+function getEditorRoot(editor: LexicalEditor | null): HTMLElement | null {
+  return editor?.getRootElement() ?? null;
+}
+
+function isVisibleTextNode(node: Text): boolean {
+  const parent = node.parentElement;
+  if (!parent) return false;
+  const style = window.getComputedStyle(parent);
+  return style.display !== "none" && style.visibility !== "hidden";
+}
+
+function findMatches(root: HTMLElement, term: string): Match[] {
+  const matches: Match[] = [];
+  const normalizedTerm = term.toLowerCase();
+  if (!normalizedTerm) return matches;
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      return isVisibleTextNode(node as Text)
+        ? NodeFilter.FILTER_ACCEPT
+        : NodeFilter.FILTER_REJECT;
+    },
+  });
+
+  let current = walker.nextNode() as Text | null;
+  while (current) {
+    const text = current.nodeValue ?? "";
+    const lower = text.toLowerCase();
+    let index = lower.indexOf(normalizedTerm);
+    while (index !== -1) {
+      matches.push({ node: current, start: index, end: index + term.length });
+      index = lower.indexOf(normalizedTerm, index + 1);
+    }
+    current = walker.nextNode() as Text | null;
+  }
+
+  return matches;
+}
+
+function createRange(match: Match): Range {
+  const range = document.createRange();
+  range.setStart(match.node, match.start);
+  range.setEnd(match.node, match.end);
+  return range;
+}
+
+function clearHighlights() {
+  const registry = getHighlightRegistry();
+  registry?.delete(HIGHLIGHT_NAME);
+  registry?.delete(ACTIVE_HIGHLIGHT_NAME);
+}
+
+function applyHighlights(matches: Match[], activeIdx: number) {
+  const HighlightCtor = getHighlightCtor();
+  const registry = getHighlightRegistry();
+  if (!HighlightCtor || !registry) return;
+
+  const highlights = new HighlightCtor();
+  const activeHighlight = new HighlightCtor();
+
+  matches.forEach((match, index) => {
+    const range = createRange(match);
+    if (index === activeIdx) {
+      activeHighlight.add(range);
+    } else {
+      highlights.add(range);
     }
   });
 
-  log(`findMatches: term="${term}" matches=${results.length}`);
-  return results;
+  registry.set(HIGHLIGHT_NAME, highlights);
+  registry.set(ACTIVE_HIGHLIGHT_NAME, activeHighlight);
 }
 
-/** Build decorations for all matches, with active match in a distinct color. */
-function buildDecorations(
-  matches: Match[],
-  activeIdx: number,
-  doc: PMNode,
-): DecorationSet {
-  if (matches.length === 0) return DecorationSet.empty;
+function selectMatch(match: Match, root: HTMLElement) {
+  const range = createRange(match);
+  const selection = window.getSelection();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
 
-  const decos: Decoration[] = [];
-  // Only decorate if the matches are still within the document range.
-  const docSize = doc.content.size;
-  for (let i = 0; i < matches.length; i++) {
-    const m = matches[i];
-    if (m.from >= docSize || m.to > docSize) continue;
-    const isActive = i === activeIdx;
-    decos.push(
-      Decoration.inline(m.from, m.to, {
-        nodeName: "span",
-        class: isActive ? "search-match search-match-active" : "search-match",
-      }),
-    );
-  }
-
-  return DecorationSet.create(doc, decos);
+  const rect = range.getBoundingClientRect();
+  const scrollEl = root.closest("[data-md-preview]") as HTMLElement | null;
+  if (!scrollEl) return;
+  const containerTop = scrollEl.getBoundingClientRect().top;
+  const targetY = rect.top - containerTop + scrollEl.scrollTop - 120;
+  scrollEl.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
 }
 
-export function useSearch(viewRef: React.MutableRefObject<EditorView | null>) {
+export function useSearch(editorRef: React.MutableRefObject<LexicalEditor | null>) {
   const [term, setTerm] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
-  const view = viewRef.current;
+  const editor = editorRef.current;
+  const root = getEditorRoot(editor);
 
-  // Inject search highlight CSS once.
   useEffect(() => {
     const id = "search-highlight-css";
     if (document.getElementById(id)) return;
     const style = document.createElement("style");
     style.id = id;
     style.textContent = `
-      .search-match { background: #ffeb3b; border-radius: 2px; }
-      .dark .search-match { background: #b09b00; }
-      .search-match-active { background: #ff9800; border-radius: 2px; }
-      .dark .search-match-active { background: #e65100; }
+      ::highlight(${HIGHLIGHT_NAME}) { background: #ffeb3b; color: inherit; }
+      ::highlight(${ACTIVE_HIGHLIGHT_NAME}) { background: #ff9800; color: inherit; }
+      .dark ::highlight(${HIGHLIGHT_NAME}) { background: #b09b00; color: inherit; }
+      .dark ::highlight(${ACTIVE_HIGHLIGHT_NAME}) { background: #e65100; color: inherit; }
     `;
     document.head.appendChild(style);
   }, []);
 
-  log(`render: view=${view ? "YES" : "NULL"} open=${open} term="${term}"`);
-
   const matches = useMemo<Match[]>(() => {
-    if (!open) { log("matches: not open"); return []; }
-    if (!view) { log("matches: view is null"); return []; }
-    return findMatches(view, term);
-  }, [view, term, open]);
+    if (!open || !root || !term) return [];
+    return findMatches(root, term);
+  }, [open, root, term]);
 
   useEffect(() => { setActiveIdx(0); }, [term]);
 
-  // Apply highlight decorations + selection navigation.
   useEffect(() => {
-    if (!view) return;
-    if (matches.length === 0) {
-      // Clear decorations.
-      view.dispatch(
-        view.state.tr.setMeta("searchDeco", DecorationSet.empty),
-      );
+    if (!open || !root || matches.length === 0) {
+      clearHighlights();
       return;
     }
 
-    const m = matches[activeIdx] ?? matches[0];
-    const decos = buildDecorations(matches, activeIdx, view.state.doc);
+    const boundedIdx = Math.min(activeIdx, matches.length - 1);
+    applyHighlights(matches, boundedIdx);
+    selectMatch(matches[boundedIdx], root);
 
-    log(`navigate: idx=${activeIdx} from=${m.from} to=${m.to}`);
-    view.dispatch(
-      view.state.tr
-        .setSelection(TextSelection.create(view.state.doc, m.from, m.to))
-        .setMeta("searchDeco", decos),
-    );
+    return clearHighlights;
+  }, [activeIdx, matches, open, root]);
 
-    // Scroll using ProseMirror's coordinate API (synchronous, no RAF needed).
-    const scrollEl = (view.dom.closest("[data-md-preview]") as HTMLElement | null)
-      ?? view.dom.parentElement;
-    if (!scrollEl) return;
-
-    const coords = view.coordsAtPos(m.from);
-    const containerTop = scrollEl.getBoundingClientRect().top;
-    const targetY = coords.top - containerTop + scrollEl.scrollTop - 120;
-    scrollEl.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
-  }, [view, matches, activeIdx]);
+  useEffect(() => clearHighlights, []);
 
   const next = useCallback(() => {
     if (matches.length === 0) return;
@@ -133,15 +168,13 @@ export function useSearch(viewRef: React.MutableRefObject<EditorView | null>) {
   }, [matches]);
 
   const toggle = useCallback(() => {
-    log("toggle");
-    setOpen((o) => {
-      if (o) setTerm("");
-      return !o;
+    setOpen((isOpen) => {
+      if (isOpen) setTerm("");
+      return !isOpen;
     });
   }, []);
 
   const close = useCallback(() => {
-    log("close");
     setOpen(false);
     setTerm("");
   }, []);

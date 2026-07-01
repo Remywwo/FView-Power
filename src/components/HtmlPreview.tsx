@@ -8,6 +8,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { LoadedFile } from "@/hooks/useFileLoader";
 import { useSettings } from "@/hooks/useSettings";
 import { useI18n } from "@/hooks/useI18n";
+import { isTauriRuntime } from "@/utils/platform";
 
 const CODE_FONT_FAMILY = '"JetBrains Mono", "SF Mono", Menlo, Monaco, Consolas, monospace';
 
@@ -53,6 +54,11 @@ export function HtmlPreview({ file, setContent, isDark }: Props) {
 
   // Start server when file changes
   useEffect(() => {
+    if (!isTauriRuntime()) {
+      setPort(null);
+      setServerError(null);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -79,6 +85,7 @@ export function HtmlPreview({ file, setContent, isDark }: Props) {
 
   // Push content to server on edit (debounced) and reload iframe
   useEffect(() => {
+    if (!isTauriRuntime()) return;
     if (port === null) return;
     let cancelled = false;
     const t = setTimeout(async () => {
@@ -99,6 +106,7 @@ export function HtmlPreview({ file, setContent, isDark }: Props) {
 
   // Stop server on unmount
   useEffect(() => {
+    if (!isTauriRuntime()) return;
     return () => {
       invoke("stop_html_server").catch(() => {});
     };

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { useI18n } from "@/hooks/useI18n";
+import { isTauriRuntime } from "@/utils/platform";
 
 /**
  * Returns true when the physical-pixel position maps to a DOM element
  * inside the Markdown editor (`[data-md-editor]`). Drops that land on
  * the editor are deliberately NOT forwarded to `handleDropPath` so
- * ProseMirror can handle them naturally (image insertion, etc.).
+ * the embedded markdown editor can handle them naturally.
  */
 function isOverMarkdownEditor(pos: { x: number; y: number }): boolean {
   const dpr = window.devicePixelRatio || 1;
@@ -22,6 +23,7 @@ export function DropZone({ onDropPath }: { onDropPath: (path: string) => void })
 
   // Tauri drag-drop: register once, keep callback fresh via ref
   useEffect(() => {
+    if (!isTauriRuntime()) return;
     let unlisten: (() => void) | undefined;
     (async () => {
       try {
@@ -56,8 +58,7 @@ export function DropZone({ onDropPath }: { onDropPath: (path: string) => void })
 
   // DOM-level: preventDefault on dragover so the browser treats this as a
   // drop target — BUT skip it when the target is inside the Markdown editor
-  // so ProseMirror's own drag-drop handlers (internal block/text moves and
-  // external file/image drops onto the editor) receive the events.
+  // so the editor's own drag-drop handlers receive the events.
   const onDragOver = useCallback((e: React.DragEvent) => {
     const target = e.target as HTMLElement | null;
     if (target?.closest("[data-md-editor]")) return;

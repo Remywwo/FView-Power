@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { EditorView } from "@milkdown/kit/prose/view";
+import type { LexicalEditor } from "lexical";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
 import { triggerAIPanel } from "@/plugins/extensions/ai-assistant";
 import type { LoadedFile } from "@/hooks/useFileLoader";
@@ -12,7 +12,6 @@ import { SearchBar } from "./editor/SearchBar";
 import { useSearch } from "./editor/useSearch";
 import { WysiwygToc } from "@/components/WysiwygToc";
 import { applyGithubTheme } from "./themes/loadTheme";
-import frameDark from "@milkdown/crepe/theme/frame-dark.css?url";
 
 interface Props {
   file: LoadedFile;
@@ -24,15 +23,19 @@ export function MarkdownPreview({ file, setContent }: Props) {
   const { settings } = useSettings();
   const { lang } = useI18n();
   const { isDark } = useTheme();
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [tocContainer, setTocContainer] = useState<HTMLDivElement | null>(null);
-  const viewRef = useRef<EditorView | null>(null);
-  // Incremented when view is ready to trigger search hook re-render.
-  const [, setViewReady] = useState(0);
+  const editorRef = useRef<LexicalEditor | null>(null);
+  // Incremented when editor is ready to trigger search hook re-render.
+  const [, setEditorReady] = useState(0);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; text: string } | null>(null);
 
-  const search = useSearch(viewRef);
-  const onViewReady = useCallback(() => setViewReady((n) => n + 1), []);
+  const search = useSearch(editorRef);
+  const onEditorReady = useCallback(() => setEditorReady((n) => n + 1), []);
+  const setEditorContainerRef = useCallback((el: HTMLDivElement | null) => {
+    containerRef.current = el;
+    setTocContainer((current) => (current === el ? current : el));
+  }, []);
 
   // Cmd+F → toggle search bar
   const toggleSearch = useCallback(() => search.toggle(), [search]);
@@ -48,23 +51,6 @@ export function MarkdownPreview({ file, setContent }: Props) {
 
   useEffect(() => { applyGithubTheme(isDark); }, [isDark]);
 
-  // Inject Milkdown dark theme CSS when dark mode is active.
-  // The light theme is statically imported in MarkdownEditor.tsx as the base.
-  useEffect(() => {
-    const id = "md-crepe-dark";
-    if (isDark) {
-      if (!document.getElementById(id)) {
-        const link = document.createElement("link");
-        link.id = id;
-        link.rel = "stylesheet";
-        link.href = frameDark;
-        document.head.appendChild(link);
-      }
-    } else {
-      document.getElementById(id)?.remove();
-    }
-  }, [isDark]);
-
   // Inject font settings.
   useEffect(() => {
     const id = "md-font-style";
@@ -73,9 +59,8 @@ export function MarkdownPreview({ file, setContent }: Props) {
     const style = document.createElement("style");
     style.id = id;
     style.textContent = `
-      .milkdown { font-size:${settings.fontSize}px; line-height:${settings.lineHeight}; }
-      .milkdown .ProseMirror { font-family:${fontFamily}; padding-left:230px; padding-right:230px; }
-      .milkdown .ProseMirror p { font-size:${settings.fontSize}px; line-height:${settings.lineHeight}; }
+      .lexical-editor { font-family:${fontFamily}; font-size:${settings.fontSize}px; line-height:${settings.lineHeight}; }
+      .lexical-editor p { font-size:${settings.fontSize}px; line-height:${settings.lineHeight}; }
     `;
     document.head.appendChild(style);
     return () => { document.getElementById(id)?.remove(); };
@@ -87,8 +72,10 @@ export function MarkdownPreview({ file, setContent }: Props) {
     if (!el) return;
     const onClick = (e: MouseEvent) => {
       const a = (e.target as HTMLElement)?.closest<HTMLAnchorElement>(".milkdown a");
-      if (!a) return;
-      const href = a.getAttribute("href") || "";
+      const lexicalLink = (e.target as HTMLElement)?.closest<HTMLAnchorElement>(".lexical-editor a");
+      const link = lexicalLink ?? a;
+      if (!link) return;
+      const href = link.getAttribute("href") || "";
       if (href.startsWith("http://") || href.startsWith("https://")) {
         e.preventDefault(); e.stopPropagation();
         void openExternal(href);
@@ -104,8 +91,8 @@ export function MarkdownPreview({ file, setContent }: Props) {
       onContextMenu={(e) => {
         const domSel = window.getSelection()?.toString().trim();
         if (domSel) { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY, text: domSel }); return; }
-        const proseMirror = (e.currentTarget as HTMLElement).querySelector(".ProseMirror") as HTMLElement | null;
-        if (!proseMirror) return;
+        const lexicalEditor = (e.currentTarget as HTMLElement).querySelector(".lexical-editor") as HTMLElement | null;
+        if (!lexicalEditor) return;
         const text = window.getSelection()?.toString().trim() ?? "";
         if (text) { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY, text }); }
       }}
@@ -125,14 +112,14 @@ export function MarkdownPreview({ file, setContent }: Props) {
 
       {/* Editor */}
       <div
-        ref={(el) => { (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = el; setTocContainer(el); }}
+        ref={setEditorContainerRef}
         style={{ flex: 1, position: "relative", minHeight: 0 }}
       >
         <MarkdownEditor
           content={file.content}
           onContentChange={setContent}
-          viewRef={viewRef}
-          onViewReady={onViewReady}
+          editorRef={editorRef}
+          onEditorReady={onEditorReady}
         />
         <WysiwygToc container={tocContainer} />
       </div>

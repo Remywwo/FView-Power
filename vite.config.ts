@@ -13,12 +13,7 @@ export default defineConfig({
   server: {
     port: 1420,
     strictPort: true,
-    host: false,
-    hmr: {
-      protocol: "ws",
-      host: "localhost",
-      port: 1421,
-    },
+    host: "127.0.0.1",
     watch: {
       ignored: ["**/src-tauri/**"],
     },

@@ -51,9 +51,7 @@ html, body {
   flex-direction: column;
 }
 
-/* ── Markdown editor (TipTap) ─────────────────────────────────────── */
-
-/* Milkdown Crepe provides its own toolbar and theme. */
+/* ── Markdown editor (Lexical) ────────────────────────────────────── */
 
 
 /* CodeMirror minimal style — used by CodePreview, not markdown. */
@@ -64,9 +62,7 @@ html, body {
   line-height: var(--cm-line-height, 1.55);
 }
 .cm-editor.cm-focused { outline: none; }
-/* VSCode-style "scroll beyond last line" — 只作用于 CodePreview（独立 CM）。
-   不能写成 `.cm-editor .cm-scroller`，否则 milkdown 内嵌的 cm-scroller 也会
-   被加上 calc(100vh - 22px) 的 padding-bottom，导致大块留白。*/
+/* VSCode-style "scroll beyond last line" — 只作用于 CodePreview（独立 CM）。 */
 [data-cm-code-preview] .cm-editor .cm-scroller {
   font-family: inherit;
   padding-bottom: calc(100vh - 22px);
@@ -1075,56 +1071,4 @@ html, body {
 .textLayer * {
   user-select: text;
   -webkit-user-select: text;
-}
-
-/* ── milkdown 嵌入式 CodeMirror ─────────────────────────────────────
-   CodeMirror 默认把 cm-editor/cm-content/cm-gutters 都设为
-   height: 100% / minHeight: 100%（为独立全屏编辑器场景设计）。
-   在 milkdown 内嵌 code block 中，父容器 .milkdown-code-block 没有
-   固定高度，导致 cm-editor 反向撑开父容器，再叠加 milkdown-code-block
-   自身的 padding (8/20/20) 与 cm-content 的 padding (4 0)，最终无论
-   内容是否为空都产生明显留白。
-
-   三处陷阱，都需要处理：
-   1) CodeMirror 在 update 时通过 JS 给 `.cm-gutters` 写入
-      `style.minHeight = contentHeight + "px"`（inline style，特异性
-      1,0,0,0）。普通 selector 无法覆盖，必须用 !important。
-   2) `.tools` 区域默认 `display:flex`（按钮 opacity:0 但仍占 layout），
-      高度约 28px，需要改成绝对定位悬浮才能不占 layout 空间。
-   3) crepe 的 `.milkdown-code-block` 默认 padding (8/20/20) 也偏大。*/
-.milkdown .milkdown-code-block {
-  padding: 4px 12px;
-}
-.milkdown .milkdown-code-block .cm-editor {
-  height: auto;
-}
-.milkdown .milkdown-code-block .cm-content {
-  min-height: 0 !important;
-  padding: 0;
-}
-.milkdown .milkdown-code-block .cm-gutters {
-  height: auto !important;
-  min-height: 0 !important;
-}
-.milkdown .milkdown-code-block .cm-gutter {
-  min-height: 0;
-}
-.milkdown .milkdown-code-block .cm-scroller {
-  padding-bottom: 0 !important;
-}
-
-/* .tools 区域改为绝对定位：保留 hover 才显示的复制按钮/语言切换，
-   但不占 layout 高度，避免 ~28px 的留白。 */
-.milkdown .milkdown-code-block .tools {
-  position: absolute;
-  top: 4px;
-  right: 8px;
-  z-index: 2;
-}
-
-/* 用户偏好：仅启用 milkdown 斜杠菜单，关闭块左侧拖拽手柄。
-   .milkdown-block-handle 由 crepe BlockEdit feature 渲染在 body 上，
-   display:none 即可视觉隐藏；block prosemirror 插件仍运行但开销可忽略。 */
-.milkdown-block-handle {
-  display: none !important;
 }

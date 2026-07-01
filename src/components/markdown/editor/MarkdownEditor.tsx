@@ -1,30 +1,27 @@
-import { useEffect, useRef, useState } from "react";
-import { useMilkdownEditor } from "./useMilkdownEditor";
-import type { EditorView } from "@milkdown/kit/prose/view";
-import "@milkdown/crepe/theme/common/style.css";
-import "@milkdown/crepe/theme/frame.css";
+import { useLexicalMarkdownEditor } from "./useLexicalMarkdownEditor";
+import type { LexicalEditor } from "lexical";
 
 export interface MarkdownEditorProps {
   content: string;
   onContentChange: (markdown: string) => void;
-  viewRef?: React.MutableRefObject<EditorView | null>;
-  onViewReady?: (view: EditorView) => void;
+  editorRef?: React.MutableRefObject<LexicalEditor | null>;
+  onEditorReady?: (editor: LexicalEditor) => void;
 }
 
-export function MarkdownEditor({ content, onContentChange, viewRef, onViewReady }: MarkdownEditorProps) {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [rootEl, setRootEl] = useState<HTMLDivElement | null>(null);
-
-  useEffect(() => setRootEl(rootRef.current), []);
-
-  useMilkdownEditor({ root: rootEl, content, onChange: onContentChange, viewRef, onViewReady });
+export function MarkdownEditor({ content, onContentChange, editorRef, onEditorReady }: MarkdownEditorProps) {
+  const editor = useLexicalMarkdownEditor({
+    content,
+    onContentChange,
+    editorRef,
+    onEditorReady,
+  });
 
   return (
     <div
-      ref={rootRef}
-      data-md-preview=""
       data-md-editor=""
-      style={{ height: "100%", overflow: "auto" }}
-    />
+      style={{ height: "100%", overflow: "hidden" }}
+    >
+      {editor}
+    </div>
   );
 }

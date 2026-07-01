@@ -12,3 +12,7 @@ export function isMacPlatform(): boolean {
   const userAgent = navigator.userAgent || "";
   return /Mac|iPhone|iPad/.test(platform) || /Mac OS X/.test(userAgent);
 }
+
+export function isTauriRuntime(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
