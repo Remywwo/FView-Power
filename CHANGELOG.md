@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3] - 2026-07-02
+
+### Fixed
+- **Modal z-index** — Help modal and Settings modal were at `z-50`, below the top toolbar (`z-100`) and the Document Switcher popover (`z-110`). Raised both to `z-[1000]` so they render above the floating toolbars.
+
+### Changed
+- **macOS-only UI gating** — the sidebar's 34px titlebar spacer now only renders on macOS (Windows has no traffic lights). The native File menu construction in `lib.rs` is now wrapped in `#[cfg(target_os = "macos")]` and the `tauri::menu` import is moved inside the cfg block, so Windows / Linux targets don't build or register a menu with no UI.
+- **TOC / folder tree hover & active backgrounds** — the Markdown TOC (SidebarOutline), PDF TOC (PdfOutlineTree), and folder tree (FolderTree) now use `var(--fview-highlight-color)` for their hover and active backgrounds, so they follow the user-configurable theme color from Settings.
+- **Default theme color** — the default highlight color in both light and dark themes is now `#ff9300` (orange) instead of indigo; `DEFAULT_SETTINGS.highlightColor` was updated to match.
+
+### Fixed
+- **AI panel position** — the AI panel bottom offset was lowered from 85px to 80px to sit flush above the new floating PDF / Image bottom toolbar pill.
+
+### Chore
+- **Rust clippy** — `get_cli_file` now uses a plain `for arg in args` instead of `while let Some(arg) = args.next()`, addressing `clippy::while_let_on_iterator`.
+
 ## [0.8.2] - 2026-07-02
 
 ### Added
