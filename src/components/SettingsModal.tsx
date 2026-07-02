@@ -108,7 +108,7 @@ export function SettingsModal({ open, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/30 backdrop-blur-sm"
     >
       <div
         className="rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-[540px] max-w-[92vw] flex flex-col"
