@@ -178,7 +178,7 @@ export const translations = {
     },
     help: {
       title: "FView Power — User Guide",
-      intro: "A minimal file previewer & editor for macOS, Windows, and Linux.",
+      intro: "A minimal file previewer & editor for macOS and Windows.",
       hOpening: "Opening files",
       liOpenFile: "Click the 📄 icon in the left sidebar, or press ⌘O, to open a single file.",
       liOpenFolder: "Click the 📁 icon in the left sidebar, or press ⇧⌘O, to open a folder and browse its tree in the left sidebar.",
@@ -427,7 +427,7 @@ export const translations = {
     },
     help: {
       title: "FView Power — 使用说明",
-      intro: "一个极简的文件预览与编辑器，跨 macOS、Windows 和 Linux。",
+      intro: "一个极简的文件预览与编辑器，跨 macOS 和 Windows。",
       hOpening: "打开文件",
       liOpenFile: "点击左侧边栏的 📄 图标，或按 ⌘O，可以打开单个文件。",
       liOpenFolder: "点击左侧边栏的 📁 图标，或按 ⇧⌘O，可以打开文件夹，侧边栏会显示目录树。",

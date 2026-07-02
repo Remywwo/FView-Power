@@ -2,7 +2,7 @@
 
 > English | [中文](./README.zh.md)
 
-A minimal cross-platform desktop file previewer & editor for macOS, Windows, and Linux.
+A minimal cross-platform desktop file previewer & editor for macOS and Windows.
 
 - **Editable**: Markdown, TXT, HTML, source code (20+ languages)
 - **Read-only preview**: PDF, DOCX, images
@@ -67,7 +67,7 @@ FView Power has a two-pane layout: a **resizable sidebar** (290–480 px) on the
 | `⌘⇧E` | Explain code |
 | `⌘⇧A` | Toggle AI panel |
 
-> On Windows/Linux, replace `⌘` with `Ctrl`.
+> On Windows, replace `⌘` with `Ctrl`.
 
 ## Features
 
