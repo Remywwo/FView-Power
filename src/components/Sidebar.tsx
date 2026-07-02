@@ -122,7 +122,7 @@ export function Sidebar(props: SidebarProps) {
   return (
     <aside className={`sidebar${props.isMac ? " sidebar-mac" : ""}`} style={{ width }}>
       {/* Titlebar spacer — keep content clear of the toolbar / traffic-light area */}
-      <div className={`sidebar-top-spacer${props.isMac ? " sidebar-mac-spacer" : ""}`} />
+      <div className={`sidebar-top-spacer${props.isMac ? " sidebar-mac-spacer" : ""}`} data-tauri-drag-region/>
 
       {/* ── Top action toolbar (centred) ──────────────────────────── */}
       <div className="sidebar-toolbar">
