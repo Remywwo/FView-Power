@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2026-07-02
+
+### Added
+- **Sidebar drag region** — the sidebar's titlebar spacer participates in the macOS window drag region, so the empty area under the traffic lights is draggable.
+
+### Removed
+- **Linux support (temporarily suspended)** — Linux is no longer listed as a supported platform. Removed the Linux download entry from the website, stripped Linux mentions from in-app Help intro and README (en/zh), and dropped the `Linux` references from the hero tagline and shortcuts table on the website.
+
 ## [0.8.1] - 2026-07-02
 
 ### Added
