@@ -46,10 +46,12 @@ import sys
 docs_file, version = sys.argv[1], sys.argv[2]
 
 # Map of i18n platform key → expected file extension
+# Note: Linux ("download.lin": ".deb") was removed when Linux support was
+# temporarily suspended in v0.8.2. Re-add the entry here when Linux is
+# reinstated so the validator re-checks the corresponding download block.
 EXPECTED = {
     "download.mac": ".dmg",
     "download.win": ".exe",
-    "download.lin": ".deb",
 }
 
 with open(docs_file, encoding="utf-8") as f:
@@ -112,7 +114,7 @@ PY
 if ! validate_platform_links "$ROOT/docs/index.html" "$VERSION"; then
   echo "" >&2
   echo "✗ Platform link validation failed. Fix docs/index.html and re-run." >&2
-  echo "  Expected extensions: mac=.dmg, win=.exe (x64-setup.exe), lin=.deb (amd64.deb)" >&2
+  echo "  Expected extensions: mac=.dmg, win=.exe (x64-setup.exe)" >&2
   exit 1
 fi
 
